@@ -1,8 +1,8 @@
 # arg 1:  the new package version
 # arg 2:  the old package version
 
-KERNEL_NAME=-nyan
-KERNEL_VERSION=4.19.10-1-ARCH
+KERNEL_NAME=-jetson-tk1
+KERNEL_VERSION=5.1.0-1
 
 post_install () {
   # updating module dependencies

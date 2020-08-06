@@ -1,0 +1,13 @@
+diff -u a/arch/arm/boot/dts/tegra124-jetson-tk1.dts b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
+--- a/arch/arm/boot/dts/tegra124-jetson-tk1.dts
++++ b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
+
+@@ -1000,7 +1000,7 @@
+ 			};
+ 			gpio_x7_aud_px7 {
+ 				nvidia,pins = "gpio_x7_aud_px7";
+-				nvidia,pull = <TEGRA_PIN_PULL_NONE>;
++				nvidia,pull = <TEGRA_PIN_PULL_UP>;
+ 				nvidia,tristate = <TEGRA_PIN_DISABLE>;
+ 				nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+ 			};

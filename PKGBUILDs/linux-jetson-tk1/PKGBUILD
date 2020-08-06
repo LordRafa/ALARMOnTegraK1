@@ -19,16 +19,8 @@ source=("http://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
         '99-linux.hook'
         'jetson-tk1_defconfig'
         'boot.scr'
-        'patches/v2-i2c-of-Try-to-find-an-I2C-adapter-matching-the-parent.patch'
-        'patches/enable-CPU-freq.patch'
-        'patches/overclock-nyan.patch'
-        'patches/enable-cec-for-nyan.patch'
-        'patches/drm-tegra-Fix-IOVA-space-on-Tegra186-and-later.patch')
+        'jetson-enable-wifi.patch')
 md5sums=('SKIP'
-         'SKIP'
-         'SKIP'
-         'SKIP'
-         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -38,10 +30,9 @@ md5sums=('SKIP'
 prepare() {
   cd "${srcdir}/${_srcname}"
 
-  patch -p1 < ../patches/enable-cec-for-nyan.patch
-  patch arch/arm/boot/dts/tegra124-nyan.dtsi < ../patches/enable-CPU-freq.patch
+  patch -p1 < ../jetson-enable-wifi.patch
 
-  cp ../jeton-tk1_defconfig arch/arm/configs/jeton-tk1_defconfig
+  cp ../jetson-tk1_defconfig arch/arm/configs/jetson-tk1_defconfig
   # add pkgrel to extraversion
   sed -ri "s|^(EXTRAVERSION =)(.*)|\1 \2-${pkgrel}|" Makefile
 
