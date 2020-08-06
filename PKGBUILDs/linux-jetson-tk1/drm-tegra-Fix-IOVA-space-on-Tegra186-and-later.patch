@@ -1,0 +1,2778 @@
+From patchwork Fri Feb  1 13:28:22 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792755
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id A31FE746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 948E032121
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 8880032130; Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 28D5532123
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 162026E27E;
+	Fri,  1 Feb 2019 13:28:44 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com
+ [IPv6:2a00:1450:4864:20::443])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 92F5B6E27E
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:42 +0000 (UTC)
+Received: by mail-wr1-x443.google.com with SMTP id q18so7063637wrx.9
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:42 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=wjbIwkQC/1CESx4l/5W0d931Bp+2Uav9p9oWdH9W1nw=;
+ b=Qj+kS/Cf6pjsfHfujgesnzZaxzzQQpY7d2cxXTn9L6QwInPpuNgCRtePn+SwMMVQw8
+ 3hVpvZV0Ig9nkNK6KgWoY5PYqMR/nRx5xs2hVsFISKOAWB6tJd46YR413qo0Hvi9g1Bj
+ 86VFDytqJDhOQSFx61J6UipGXWhqDHeK5NtFxcgRMLIUoFITkqy7e2fvV6oJq5WwLFC/
+ JMThbhN0doB8mWObdvB2l5oTcckXuCjnUNITBY7+QjAXNUHjGub176iVu5mbGRw9xa9I
+ zxugd695G0nroYu4k3mhmOOZWZIMI8NIWMKpF6C6mQIHjPw4VN2YxouM4rtNaMOZpyft
+ Ib8A==
+X-Gm-Message-State: AJcUukfvBvaFCe0CbB+xtyv1MoBCdbyLI5Qsh8CQlQQ95U11ZLDmIF0Q
+ Pkn4oneaPuiUMD1qpUC3aRA=
+X-Google-Smtp-Source: 
+ ALg8bN79dHou5QKijRD2zgoFHhS+Tx3n3yGSQNjsyMyZoMNfmKCni6k5qcMy+XKkzn0537dEo6QGUA==
+X-Received: by 2002:adf:fac6:: with SMTP id a6mr40894927wrs.53.1549027721119;
+ Fri, 01 Feb 2019 05:28:41 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id g67sm3979178wmd.38.2019.02.01.05.28.40
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:40 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 01/16] gpu: host1x: Set up stream ID table
+Date: Fri,  1 Feb 2019 14:28:22 +0100
+Message-Id: <20190201132837.12327-2-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+In order to enable the MMIO path stream ID protection provided by the
+incarnation of host1x found in Tegra186 and later, the host1x must be
+provided with the list of stream ID register offsets for each of its
+clients. Some clients (such as VIC) have multiple stream ID registers
+that are assumed to be contiguous. The host1x is programmed with the
+base offset and a limit which provide the range of registers that the
+host1x needs to monitor for writes.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/host1x/dev.c | 38 ++++++++++++++++++++++++++++++++++++++
+ drivers/gpu/host1x/dev.h |  8 ++++++++
+ 2 files changed, 46 insertions(+)
+
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 419d8929a98f..4c044ee54fe6 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -120,6 +120,15 @@ static const struct host1x_info host1x05_info = {
+ 	.dma_mask = DMA_BIT_MASK(34),
+ };
+ 
++static const struct host1x_sid_entry tegra186_sid_table[] = {
++	{
++		/* VIC */
++		.base = 0x1af0,
++		.offset = 0x30,
++		.limit = 0x34
++	},
++};
++
+ static const struct host1x_info host1x06_info = {
+ 	.nb_channels = 63,
+ 	.nb_pts = 576,
+@@ -129,6 +138,17 @@ static const struct host1x_info host1x06_info = {
+ 	.sync_offset = 0x0,
+ 	.dma_mask = DMA_BIT_MASK(34),
+ 	.has_hypervisor = true,
++	.num_sid_entries = ARRAY_SIZE(tegra186_sid_table),
++	.sid_table = tegra186_sid_table,
++};
++
++static const struct host1x_sid_entry tegra194_sid_table[] = {
++	{
++		/* VIC */
++		.base = 0x1af0,
++		.offset = 0x30,
++		.limit = 0x34
++	},
+ };
+ 
+ static const struct host1x_info host1x07_info = {
+@@ -140,6 +160,8 @@ static const struct host1x_info host1x07_info = {
+ 	.sync_offset = 0x0,
+ 	.dma_mask = DMA_BIT_MASK(40),
+ 	.has_hypervisor = true,
++	.num_sid_entries = ARRAY_SIZE(tegra194_sid_table),
++	.sid_table = tegra194_sid_table,
+ };
+ 
+ static const struct of_device_id host1x_of_match[] = {
+@@ -154,6 +176,19 @@ static const struct of_device_id host1x_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, host1x_of_match);
+ 
++static void host1x_setup_sid_table(struct host1x *host)
++{
++	const struct host1x_info *info = host->info;
++	unsigned int i;
++
++	for (i = 0; i < info->num_sid_entries; i++) {
++		const struct host1x_sid_entry *entry = &info->sid_table[i];
++
++		host1x_hypervisor_writel(host, entry->offset, entry->base);
++		host1x_hypervisor_writel(host, entry->limit, entry->base + 4);
++	}
++}
++
+ static int host1x_probe(struct platform_device *pdev)
+ {
+ 	struct host1x *host;
+@@ -316,6 +351,9 @@ static int host1x_probe(struct platform_device *pdev)
+ 
+ 	host1x_debug_init(host);
+ 
++	if (host->info->has_hypervisor)
++		host1x_setup_sid_table(host);
++
+ 	err = host1x_register(host);
+ 	if (err < 0)
+ 		goto fail_deinit_intr;
+diff --git a/drivers/gpu/host1x/dev.h b/drivers/gpu/host1x/dev.h
+index 36f44ffebe73..05216a7e4830 100644
+--- a/drivers/gpu/host1x/dev.h
++++ b/drivers/gpu/host1x/dev.h
+@@ -94,6 +94,12 @@ struct host1x_intr_ops {
+ 	int (*free_syncpt_irq)(struct host1x *host);
+ };
+ 
++struct host1x_sid_entry {
++	unsigned int base;
++	unsigned int offset;
++	unsigned int limit;
++};
++
+ struct host1x_info {
+ 	unsigned int nb_channels; /* host1x: number of channels supported */
+ 	unsigned int nb_pts; /* host1x: number of syncpoints supported */
+@@ -103,6 +109,8 @@ struct host1x_info {
+ 	unsigned int sync_offset; /* offset of syncpoint registers */
+ 	u64 dma_mask; /* mask of addressable memory */
+ 	bool has_hypervisor; /* has hypervisor registers */
++	unsigned int num_sid_entries;
++	const struct host1x_sid_entry *sid_table;
+ };
+ 
+ struct host1x {
+
+From patchwork Fri Feb  1 13:28:23 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792757
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 0F3A813B4
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:51 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id EFF9529BD1
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:50 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id E303829B5E; Fri,  1 Feb 2019 13:28:50 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 5E8FE294F1
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:50 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 7A21D6E282;
+	Fri,  1 Feb 2019 13:28:45 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com
+ [IPv6:2a00:1450:4864:20::343])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 30D346E281
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:44 +0000 (UTC)
+Received: by mail-wm1-x343.google.com with SMTP id p6so6213298wmc.1
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:44 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=wg0iGgLOgi0k9FT0008tiI43lGVn8Oxp/Ocf45x21Qo=;
+ b=U7l7ODvemUsdwJ+uK0q0fWZuamxeOIaZawQaO4wPRODvyoHvxGy52PASdjqIm3NmPa
+ lLCgLnK1gFNNa5fNgyVNcFZ7ZolVFB2dNdbkNmbVnu6QlwGt4N2WHVxXxXX7QQwNEm46
+ lqrkaQKChEtj/F9uZxOxIKRVLGWZ5GwKBrMU5RMRCRjero5L2rMKeoCcwXYdXUAJt/9B
+ C0NALfgCmsvvUwl7OZ/MgMZviwh2WZA3WK0ijHgOeqUPCLRxJNVC+9w4EL2ER58hGNe4
+ sGSpyPcLIVqR0ySJV/7TxcCDrxknJT8ugqCJrO/qxM8WCq4o8mz0xmE4hC0ufbjhOHi5
+ QYOg==
+X-Gm-Message-State: AHQUAubI3X64nXQ1Jla/KhEGHZvVBDS1Ubub+t49zSR0CyaQYUkAkVBr
+ 9Hkyzg5vbQ0U8UDKxs1VBI1eQ1wPVBE=
+X-Google-Smtp-Source: 
+ AHgI3IZUHdPXfMRaVyXdUgmfOGt77mMo84q0IhBkw8WWczgm2twvLpyT9TEG5j/Diis8RtASXYbVWA==
+X-Received: by 2002:a1c:5dd1:: with SMTP id r200mr2542841wmb.93.1549027722627;
+ Fri, 01 Feb 2019 05:28:42 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id p5sm1195324wmh.16.2019.02.01.05.28.41
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:42 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 02/16] gpu: host1x: Program the channel stream ID
+Date: Fri,  1 Feb 2019 14:28:23 +0100
+Message-Id: <20190201132837.12327-3-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+When processing command streams, make sure the host1x's stream ID is
+programmed for the channel so that addresses are properly translated
+through the SMMU.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/host1x/hw/channel_hw.c          | 12 ++++++++++++
+ drivers/gpu/host1x/hw/host1x06_hardware.h   |  1 +
+ drivers/gpu/host1x/hw/host1x07_hardware.h   |  1 +
+ drivers/gpu/host1x/hw/hw_host1x06_channel.h | 11 +++++++++++
+ drivers/gpu/host1x/hw/hw_host1x07_channel.h | 11 +++++++++++
+ 5 files changed, 36 insertions(+)
+ create mode 100644 drivers/gpu/host1x/hw/hw_host1x06_channel.h
+ create mode 100644 drivers/gpu/host1x/hw/hw_host1x07_channel.h
+
+diff --git a/drivers/gpu/host1x/hw/channel_hw.c b/drivers/gpu/host1x/hw/channel_hw.c
+index 95ea81172a83..384f6ac91afa 100644
+--- a/drivers/gpu/host1x/hw/channel_hw.c
++++ b/drivers/gpu/host1x/hw/channel_hw.c
+@@ -89,6 +89,16 @@ static inline void synchronize_syncpt_base(struct host1x_job *job)
+ 			 HOST1X_UCLASS_LOAD_SYNCPT_BASE_VALUE_F(value));
+ }
+ 
++static void host1x_channel_set_streamid(struct host1x_channel *channel)
++{
++#if HOST1X_HW >= 6
++	struct iommu_fwspec *spec = dev_iommu_fwspec_get(channel->dev->parent);
++	u32 sid = spec->ids[0] & 0xffff;
++
++	host1x_ch_writel(channel, sid, HOST1X_CHANNEL_SMMU_STREAMID);
++#endif
++}
++
+ static int channel_submit(struct host1x_job *job)
+ {
+ 	struct host1x_channel *ch = job->channel;
+@@ -120,6 +130,8 @@ static int channel_submit(struct host1x_job *job)
+ 		goto error;
+ 	}
+ 
++	host1x_channel_set_streamid(ch);
++
+ 	/* begin a CDMA submit */
+ 	err = host1x_cdma_begin(&ch->cdma, job);
+ 	if (err) {
+diff --git a/drivers/gpu/host1x/hw/host1x06_hardware.h b/drivers/gpu/host1x/hw/host1x06_hardware.h
+index 3039c92ea605..eab753b91f24 100644
+--- a/drivers/gpu/host1x/hw/host1x06_hardware.h
++++ b/drivers/gpu/host1x/hw/host1x06_hardware.h
+@@ -22,6 +22,7 @@
+ #include <linux/types.h>
+ #include <linux/bitops.h>
+ 
++#include "hw_host1x06_channel.h"
+ #include "hw_host1x06_uclass.h"
+ #include "hw_host1x06_vm.h"
+ #include "hw_host1x06_hypervisor.h"
+diff --git a/drivers/gpu/host1x/hw/host1x07_hardware.h b/drivers/gpu/host1x/hw/host1x07_hardware.h
+index 1353e7ab71dd..a79f57dc87bb 100644
+--- a/drivers/gpu/host1x/hw/host1x07_hardware.h
++++ b/drivers/gpu/host1x/hw/host1x07_hardware.h
+@@ -22,6 +22,7 @@
+ #include <linux/types.h>
+ #include <linux/bitops.h>
+ 
++#include "hw_host1x07_channel.h"
+ #include "hw_host1x07_uclass.h"
+ #include "hw_host1x07_vm.h"
+ #include "hw_host1x07_hypervisor.h"
+diff --git a/drivers/gpu/host1x/hw/hw_host1x06_channel.h b/drivers/gpu/host1x/hw/hw_host1x06_channel.h
+new file mode 100644
+index 000000000000..18ae1c57bbea
+--- /dev/null
++++ b/drivers/gpu/host1x/hw/hw_host1x06_channel.h
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 NVIDIA Corporation.
++ */
++
++#ifndef HOST1X_HW_HOST1X06_CHANNEL_H
++#define HOST1X_HW_HOST1X06_CHANNEL_H
++
++#define HOST1X_CHANNEL_SMMU_STREAMID 0x084
++
++#endif
+diff --git a/drivers/gpu/host1x/hw/hw_host1x07_channel.h b/drivers/gpu/host1x/hw/hw_host1x07_channel.h
+new file mode 100644
+index 000000000000..96fa72bbd7ab
+--- /dev/null
++++ b/drivers/gpu/host1x/hw/hw_host1x07_channel.h
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 NVIDIA Corporation.
++ */
++
++#ifndef HOST1X_HW_HOST1X07_CHANNEL_H
++#define HOST1X_HW_HOST1X07_CHANNEL_H
++
++#define HOST1X_CHANNEL_SMMU_STREAMID 0x084
++
++#endif
+
+From patchwork Fri Feb  1 13:28:24 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792759
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id C8EF0922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:53 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id A65F429533
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:53 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 94D4F2C89D; Fri,  1 Feb 2019 13:28:53 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id C8A472D1EB
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:52 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 35BFC6EE43;
+	Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com
+ [IPv6:2a00:1450:4864:20::441])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 961826E281
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:45 +0000 (UTC)
+Received: by mail-wr1-x441.google.com with SMTP id b4so179491wrq.10
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:45 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=NwsWVWy8vuEMAajnZP7InA+g7wcnn8BpTYvFQ8gZvv0=;
+ b=p79bZxavRTfOB/e7Pz1f6/GbDZ/q4QJsNoGLoF2EYMbVzyY2v3dSHS+mtST4O3Hqbu
+ 0UILEtybMn/EwxaMV/uemJ1GO3PPUi3ZiRaoWF9rCjDbtAF4NQ4Rnbq5HmPo7saJ253q
+ giRS9GX+5+f4oLmFtagLlBGAVssIEl1zi7CnIYQkC+pEOHxgwP5yLGlhzwI4dZAy4RyV
+ XVeRFlkI8vmZIDf1Bz328/q6+0sK4HxDo5dIrzysuZvqfZ4jIz+aCD52fQUXbKJScrlm
+ viGpmVT9XNxuhXfKZj+fO/yJhgcz/XXe8XGdsrQLIc9atGREAEthDp18IIBZeAqXU7L2
+ qWgw==
+X-Gm-Message-State: AJcUukf11M31gd3iuGiDMTEtjkhdIpWt1Ig353z53nhwXLx19EbRmQzF
+ AGoxz6avg02Ku3H5VTRAzu0=
+X-Google-Smtp-Source: 
+ ALg8bN74W/e1A8HSmj1wLJqiY2py6iA33J7IGE5/VKoOW7aEe6u/ZKZwUU/1s3E0cViIe24x0F5yqg==
+X-Received: by 2002:a5d:6549:: with SMTP id z9mr37550430wrv.116.1549027724078;
+ Fri, 01 Feb 2019 05:28:44 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id y14sm5308192wro.92.2019.02.01.05.28.43
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:43 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 03/16] gpu: host1x: Introduce support for wide opcodes
+Date: Fri,  1 Feb 2019 14:28:24 +0100
+Message-Id: <20190201132837.12327-4-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The CDMA push buffer can currently only handle opcodes that take a
+single word parameter. However, the host1x implementation on Tegra186
+and later supports opcodes that require multiple words as parameters.
+
+Unfortunately the way the push buffer is structured, these wide opcodes
+cannot simply be composed of two regular opcodes because that could
+result in the wide opcode being split across the end of the push buffer
+and the final RESTART opcode required to wrap the push buffer around
+would break the wide opcode.
+
+One way to fix this would be to remove the concept of slots to simplify
+push buffer operations. However, that's not entirely trivial and should
+be done in a separate patch. For now, simply use a different function
+to push four-word opcodes into the push buffer. Technically only three
+words are pushed, with the fourth word used as padding to preserve the
+2-word alignment required by the slots abstraction. The fourth word is
+always a NOP opcode.
+
+Additional care must be taken when the end of the push buffer is
+reached. If a four-word opcode doesn't fit into the push buffer without
+being split by the boundary, NOP opcodes will be introduced and the new
+wide opcode placed at the beginning of the push buffer.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/host1x/cdma.c     | 92 +++++++++++++++++++++++++++++++++++
+ drivers/gpu/host1x/cdma.h     |  2 +
+ include/trace/events/host1x.h | 26 ++++++++++
+ 3 files changed, 120 insertions(+)
+
+diff --git a/drivers/gpu/host1x/cdma.c b/drivers/gpu/host1x/cdma.c
+index 91df51e631b2..e2d106fa3c0b 100644
+--- a/drivers/gpu/host1x/cdma.c
++++ b/drivers/gpu/host1x/cdma.c
+@@ -217,6 +217,45 @@ unsigned int host1x_cdma_wait_locked(struct host1x_cdma *cdma,
+ 	return 0;
+ }
+ 
++/*
++ * Sleep (if necessary) until the push buffer has enough free space.
++ *
++ * Must be called with the cdma lock held.
++ */
++int host1x_cdma_wait_pushbuffer_space(struct host1x *host1x,
++				      struct host1x_cdma *cdma,
++				      unsigned int needed)
++{
++	while (true) {
++		struct push_buffer *pb = &cdma->push_buffer;
++		unsigned int space;
++
++		space = host1x_pushbuffer_space(pb);
++		if (space >= needed)
++			break;
++
++		trace_host1x_wait_cdma(dev_name(cdma_to_channel(cdma)->dev),
++				       CDMA_EVENT_PUSH_BUFFER_SPACE);
++
++		host1x_hw_cdma_flush(host1x, cdma);
++
++		/* If somebody has managed to already start waiting, yield */
++		if (cdma->event != CDMA_EVENT_NONE) {
++			mutex_unlock(&cdma->lock);
++			schedule();
++			mutex_lock(&cdma->lock);
++			continue;
++		}
++
++		cdma->event = CDMA_EVENT_PUSH_BUFFER_SPACE;
++
++		mutex_unlock(&cdma->lock);
++		down(&cdma->sem);
++		mutex_lock(&cdma->lock);
++	}
++
++	return 0;
++}
+ /*
+  * Start timer that tracks the time spent by the job.
+  * Must be called with the cdma lock held.
+@@ -509,6 +548,59 @@ void host1x_cdma_push(struct host1x_cdma *cdma, u32 op1, u32 op2)
+ 	host1x_pushbuffer_push(pb, op1, op2);
+ }
+ 
++/*
++ * Push four words into two consecutive push buffer slots. Note that extra
++ * care needs to be taken not to split the two slots across the end of the
++ * push buffer. Otherwise the RESTART opcode at the end of the push buffer
++ * that ensures processing will restart at the beginning will break up the
++ * four words.
++ *
++ * Blocks as necessary if the push buffer is full.
++ */
++void host1x_cdma_push_wide(struct host1x_cdma *cdma, u32 op1, u32 op2,
++			   u32 op3, u32 op4)
++{
++	struct host1x_channel *channel = cdma_to_channel(cdma);
++	struct host1x *host1x = cdma_to_host1x(cdma);
++	struct push_buffer *pb = &cdma->push_buffer;
++	unsigned int needed = 2, extra = 0, i;
++	unsigned int space = cdma->slots_free;
++
++	if (host1x_debug_trace_cmdbuf)
++		trace_host1x_cdma_push_wide(dev_name(channel->dev), op1, op2,
++					    op3, op4);
++
++	/* compute number of extra slots needed for padding */
++	if (pb->pos + 16 > pb->size) {
++		extra = (pb->size - pb->pos) / 8;
++		needed += extra;
++	}
++
++	host1x_cdma_wait_pushbuffer_space(host1x, cdma, needed);
++	space = host1x_pushbuffer_space(pb);
++
++	cdma->slots_free = space - needed;
++	cdma->slots_used += needed;
++
++	/*
++	 * Note that we rely on the fact that this is only used to submit wide
++	 * gather opcodes, which consist of 3 words, and they are padded with
++	 * a NOP to avoid having to deal with fractional slots (a slot always
++	 * represents 2 words). The fourth opcode passed to this function will
++	 * therefore always be a NOP.
++	 *
++	 * This works around a slight ambiguity when it comes to opcodes. For
++	 * all current host1x incarnations the NOP opcode uses the exact same
++	 * encoding (0x20000000), so we could hard-code the value here, but a
++	 * new incarnation may change it and break that assumption.
++	 */
++	for (i = 0; i < extra; i++)
++		host1x_pushbuffer_push(pb, op4, op4);
++
++	host1x_pushbuffer_push(pb, op1, op2);
++	host1x_pushbuffer_push(pb, op3, op4);
++}
++
+ /*
+  * End a cdma submit
+  * Kick off DMA, add job to the sync queue, and a number of slots to be freed
+diff --git a/drivers/gpu/host1x/cdma.h b/drivers/gpu/host1x/cdma.h
+index e97e17b82370..ebf6c6a06541 100644
+--- a/drivers/gpu/host1x/cdma.h
++++ b/drivers/gpu/host1x/cdma.h
+@@ -90,6 +90,8 @@ int host1x_cdma_init(struct host1x_cdma *cdma);
+ int host1x_cdma_deinit(struct host1x_cdma *cdma);
+ int host1x_cdma_begin(struct host1x_cdma *cdma, struct host1x_job *job);
+ void host1x_cdma_push(struct host1x_cdma *cdma, u32 op1, u32 op2);
++void host1x_cdma_push_wide(struct host1x_cdma *cdma, u32 op1, u32 op2,
++			   u32 op3, u32 op4);
+ void host1x_cdma_end(struct host1x_cdma *cdma, struct host1x_job *job);
+ void host1x_cdma_update(struct host1x_cdma *cdma);
+ void host1x_cdma_peek(struct host1x_cdma *cdma, u32 dmaget, int slot,
+diff --git a/include/trace/events/host1x.h b/include/trace/events/host1x.h
+index a37ef73092e5..3d340b6f1ea3 100644
+--- a/include/trace/events/host1x.h
++++ b/include/trace/events/host1x.h
+@@ -80,6 +80,32 @@ TRACE_EVENT(host1x_cdma_push,
+ 		__entry->name, __entry->op1, __entry->op2)
+ );
+ 
++TRACE_EVENT(host1x_cdma_push_wide,
++	TP_PROTO(const char *name, u32 op1, u32 op2, u32 op3, u32 op4),
++
++	TP_ARGS(name, op1, op2, op3, op4),
++
++	TP_STRUCT__entry(
++		__field(const char *, name)
++		__field(u32, op1)
++		__field(u32, op2)
++		__field(u32, op3)
++		__field(u32, op4)
++	),
++
++	TP_fast_assign(
++		__entry->name = name;
++		__entry->op1 = op1;
++		__entry->op2 = op2;
++		__entry->op3 = op3;
++		__entry->op4 = op4;
++	),
++
++	TP_printk("name=%s, op1=%08x, op2=%08x, op3=%08x op4=%08x",
++		__entry->name, __entry->op1, __entry->op2, __entry->op3,
++		__entry->op4)
++);
++
+ TRACE_EVENT(host1x_cdma_push_gather,
+ 	TP_PROTO(const char *name, struct host1x_bo *bo,
+ 			u32 words, u32 offset, void *cmdbuf),
+
+From patchwork Fri Feb  1 13:28:25 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792761
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 9BF79746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:55 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 7E35831703
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:55 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 7AB3B2E9BA; Fri,  1 Feb 2019 13:28:55 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id CBD812AED5
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:54 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 523006EE45;
+	Fri,  1 Feb 2019 13:28:50 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com
+ [IPv6:2a00:1450:4864:20::343])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 6BD406EE45
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:47 +0000 (UTC)
+Received: by mail-wm1-x343.google.com with SMTP id d15so6136267wmb.3
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:47 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=rPNrtBf06YRSfGqBflKxKx+UTtJ1ZxBvrmptKyaxioo=;
+ b=Km5pjCxrJJe99jKWQOFFLdqAjeZfuv9TJ53eSCr6oFR6MVYkHjUKyf0VPt7OjlGAse
+ 8EzJDRYFlEGhP8q2MK9YVmPBXfeHz/B3U58Mle5t4vk6yYF2L9zFJxUhx1SDq//7km0Z
+ Q3N2402Wu0OgJ5kJCs+Y4rP0trinhp/68ZXR612Zw0YD54bcrDMeu5Hfos0gfZXy64C+
+ DV1FfOvJN3HRZWWWiFEqdEDHL+t5QkpuxAp5ofekuRjcVeFKVKQ2meVVAMj46hVnsNeB
+ +5DZ9LjcNMf3blcsJs1TpCcPChGgGsnsgyV74y5Rop832Q77JiXQmAnV3lk8cqakgLyt
+ 6t6w==
+X-Gm-Message-State: AHQUAuZHuJkEqnrQfn1+LEtDN1640Dw8s0CWIjijCSHs52tisZRK2YrN
+ dAYqTQ0v3VaPyDQKBiuaxhM=
+X-Google-Smtp-Source: 
+ AHgI3IYe2zaT54UXf/ORjMMPdgMS2cjv6cRT6/BtbBYuatp/Uf2eZCkO3XhlA8i/2wM+6Mg+jDGyLg==
+X-Received: by 2002:a1c:e046:: with SMTP id x67mr2399997wmg.122.1549027725614;
+ Fri, 01 Feb 2019 05:28:45 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id y13sm4639048wrw.85.2019.02.01.05.28.44
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:45 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 04/16] gpu: host1x: Support 40-bit addressing
+Date: Fri,  1 Feb 2019 14:28:25 +0100
+Message-Id: <20190201132837.12327-5-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Tegra186 and later support 40 bits of address space. Additional
+registers need to be programmed to store the full 40 bits of push
+buffer addresses.
+
+Since command stream gathers can also reside in buffers in a 40-bit
+address space, a new variant of the GATHER opcode is also introduced.
+It takes two parameters: the first parameter contains the lower 32
+bits of the address and the second parameter contains bits 32 to 39.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/host1x/hw/cdma_hw.c           | 32 ++++++++++++++++++-----
+ drivers/gpu/host1x/hw/channel_hw.c        | 30 ++++++++++++++++++---
+ drivers/gpu/host1x/hw/host1x06_hardware.h |  5 ++++
+ drivers/gpu/host1x/hw/host1x07_hardware.h |  5 ++++
+ 4 files changed, 62 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/gpu/host1x/hw/cdma_hw.c b/drivers/gpu/host1x/hw/cdma_hw.c
+index ce320534cbed..485aef5761af 100644
+--- a/drivers/gpu/host1x/hw/cdma_hw.c
++++ b/drivers/gpu/host1x/hw/cdma_hw.c
+@@ -68,20 +68,31 @@ static void cdma_timeout_cpu_incr(struct host1x_cdma *cdma, u32 getptr,
+ static void cdma_start(struct host1x_cdma *cdma)
+ {
+ 	struct host1x_channel *ch = cdma_to_channel(cdma);
++	u64 start, end;
+ 
+ 	if (cdma->running)
+ 		return;
+ 
+ 	cdma->last_pos = cdma->push_buffer.pos;
++	start = cdma->push_buffer.dma;
++	end = start + cdma->push_buffer.size + 4;
+ 
+ 	host1x_ch_writel(ch, HOST1X_CHANNEL_DMACTRL_DMASTOP,
+ 			 HOST1X_CHANNEL_DMACTRL);
+ 
+ 	/* set base, put and end pointer */
+-	host1x_ch_writel(ch, cdma->push_buffer.dma, HOST1X_CHANNEL_DMASTART);
++	host1x_ch_writel(ch, lower_32_bits(start), HOST1X_CHANNEL_DMASTART);
++#if HOST1X_HW >= 6
++	host1x_ch_writel(ch, upper_32_bits(start), HOST1X_CHANNEL_DMASTART_HI);
++#endif
+ 	host1x_ch_writel(ch, cdma->push_buffer.pos, HOST1X_CHANNEL_DMAPUT);
+-	host1x_ch_writel(ch, cdma->push_buffer.dma + cdma->push_buffer.size + 4,
+-			 HOST1X_CHANNEL_DMAEND);
++#if HOST1X_HW >= 6
++	host1x_ch_writel(ch, 0, HOST1X_CHANNEL_DMAPUT_HI);
++#endif
++	host1x_ch_writel(ch, lower_32_bits(end), HOST1X_CHANNEL_DMAEND);
++#if HOST1X_HW >= 6
++	host1x_ch_writel(ch, upper_32_bits(end), HOST1X_CHANNEL_DMAEND_HI);
++#endif
+ 
+ 	/* reset GET */
+ 	host1x_ch_writel(ch, HOST1X_CHANNEL_DMACTRL_DMASTOP |
+@@ -104,6 +115,7 @@ static void cdma_timeout_restart(struct host1x_cdma *cdma, u32 getptr)
+ {
+ 	struct host1x *host1x = cdma_to_host1x(cdma);
+ 	struct host1x_channel *ch = cdma_to_channel(cdma);
++	u64 start, end;
+ 
+ 	if (cdma->running)
+ 		return;
+@@ -113,10 +125,18 @@ static void cdma_timeout_restart(struct host1x_cdma *cdma, u32 getptr)
+ 	host1x_ch_writel(ch, HOST1X_CHANNEL_DMACTRL_DMASTOP,
+ 			 HOST1X_CHANNEL_DMACTRL);
+ 
++	start = cdma->push_buffer.dma;
++	end = start + cdma->push_buffer.size + 4;
++
+ 	/* set base, end pointer (all of memory) */
+-	host1x_ch_writel(ch, cdma->push_buffer.dma, HOST1X_CHANNEL_DMASTART);
+-	host1x_ch_writel(ch, cdma->push_buffer.dma + cdma->push_buffer.size,
+-			 HOST1X_CHANNEL_DMAEND);
++	host1x_ch_writel(ch, lower_32_bits(start), HOST1X_CHANNEL_DMASTART);
++#if HOST1X_HW >= 6
++	host1x_ch_writel(ch, upper_32_bits(start), HOST1X_CHANNEL_DMASTART_HI);
++#endif
++	host1x_ch_writel(ch, lower_32_bits(end), HOST1X_CHANNEL_DMAEND);
++#if HOST1X_HW >= 6
++	host1x_ch_writel(ch, upper_32_bits(end), HOST1X_CHANNEL_DMAEND_HI);
++#endif
+ 
+ 	/* set GET, by loading the value in PUT (then reset GET) */
+ 	host1x_ch_writel(ch, getptr, HOST1X_CHANNEL_DMAPUT);
+diff --git a/drivers/gpu/host1x/hw/channel_hw.c b/drivers/gpu/host1x/hw/channel_hw.c
+index 384f6ac91afa..73f11a418ee6 100644
+--- a/drivers/gpu/host1x/hw/channel_hw.c
++++ b/drivers/gpu/host1x/hw/channel_hw.c
+@@ -60,15 +60,37 @@ static void trace_write_gather(struct host1x_cdma *cdma, struct host1x_bo *bo,
+ static void submit_gathers(struct host1x_job *job)
+ {
+ 	struct host1x_cdma *cdma = &job->channel->cdma;
++#if HOST1X_HW < 6
++	struct device *dev = job->channel->dev;
++#endif
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < job->num_gathers; i++) {
+ 		struct host1x_job_gather *g = &job->gathers[i];
+-		u32 op1 = host1x_opcode_gather(g->words);
+-		u32 op2 = g->base + g->offset;
++		dma_addr_t addr = g->base + g->offset;
++		u32 op2, op3;
++
++		op2 = lower_32_bits(addr);
++		op3 = upper_32_bits(addr);
++
++		trace_write_gather(cdma, g->bo, g->offset, g->words);
++
++		if (op3 != 0) {
++#if HOST1X_HW >= 6
++			u32 op1 = host1x_opcode_gather_wide(g->words);
++			u32 op4 = HOST1X_OPCODE_NOP;
+ 
+-		trace_write_gather(cdma, g->bo, g->offset, op1 & 0xffff);
+-		host1x_cdma_push(cdma, op1, op2);
++			host1x_cdma_push_wide(cdma, op1, op2, op3, op4);
++#else
++			dev_err(dev, "invalid gather for push buffer %pad\n",
++				&addr);
++			continue;
++#endif
++		} else {
++			u32 op1 = host1x_opcode_gather(g->words);
++
++			host1x_cdma_push(cdma, op1, op2);
++		}
+ 	}
+ }
+ 
+diff --git a/drivers/gpu/host1x/hw/host1x06_hardware.h b/drivers/gpu/host1x/hw/host1x06_hardware.h
+index eab753b91f24..dd37b10c8d04 100644
+--- a/drivers/gpu/host1x/hw/host1x06_hardware.h
++++ b/drivers/gpu/host1x/hw/host1x06_hardware.h
+@@ -138,6 +138,11 @@ static inline u32 host1x_opcode_gather_incr(unsigned offset, unsigned count)
+ 	return (6 << 28) | (offset << 16) | BIT(15) | BIT(14) | count;
+ }
+ 
++static inline u32 host1x_opcode_gather_wide(unsigned count)
++{
++	return (12 << 28) | count;
++}
++
+ #define HOST1X_OPCODE_NOP host1x_opcode_nonincr(0, 0)
+ 
+ #endif
+diff --git a/drivers/gpu/host1x/hw/host1x07_hardware.h b/drivers/gpu/host1x/hw/host1x07_hardware.h
+index a79f57dc87bb..9f6da4ee5443 100644
+--- a/drivers/gpu/host1x/hw/host1x07_hardware.h
++++ b/drivers/gpu/host1x/hw/host1x07_hardware.h
+@@ -138,6 +138,11 @@ static inline u32 host1x_opcode_gather_incr(unsigned offset, unsigned count)
+ 	return (6 << 28) | (offset << 16) | BIT(15) | BIT(14) | count;
+ }
+ 
++static inline u32 host1x_opcode_gather_wide(unsigned count)
++{
++	return (12 << 28) | count;
++}
++
+ #define HOST1X_OPCODE_NOP host1x_opcode_nonincr(0, 0)
+ 
+ #endif
+
+From patchwork Fri Feb  1 13:28:26 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792765
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 4DA6D922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:00 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 3BF432BF4E
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:00 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 398D72F463; Fri,  1 Feb 2019 13:29:00 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id E108831084
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:59 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 51A4F6EE46;
+	Fri,  1 Feb 2019 13:28:54 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com
+ [IPv6:2a00:1450:4864:20::444])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 9ACDD6EE46
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:49 +0000 (UTC)
+Received: by mail-wr1-x444.google.com with SMTP id r17so1136322wrp.2
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:49 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=M+gIEmjmEfyRDTbiyXayJggt4p3R2KwhPClEdJJcpg0=;
+ b=WTF2Fy2oIrR869adEF5n0dabG7MIym/edpFC84V59+v7XWzTZP1KJTz9RDRDckOV/l
+ bH7d1ebqXwc9PDP26mXYAPY+tHcjDcFyYZu7B2P8paIQeySSsrgG/nMtd0b/PT/EDIPs
+ Y7zGybMpYtq9ZnPW7eElJir4LfnBv6bgi/votXeXa0Pb5XXoSKW9eaWyA8zvuDg5Tw+g
+ VEcJ3I1kZUU4Q+upAnMddHFEqEoQHa0mXhcAqoykPXUe7cMydExojKfYdvkbdJJrdPB7
+ fNndKOybnRSGqbm/T9fdhWEMLvUPDY/UJt9oNGOuzMMfgNZUMWDWTUxgtwAfgUPmyRkY
+ RZjw==
+X-Gm-Message-State: AHQUAubjqZgakiFuIiY3EDfkGYAVXQpzOV3KYSqqeDCIN1xvFvRrPrT/
+ aSJ1mm1j2Pzafhfk2Q0W1ko=
+X-Google-Smtp-Source: 
+ AHgI3IZ1kdoXbef8UKih1NlEts6BfxBEx7p1rQPsXieAXJkwE38yIuzbyd1lj0sEMFykJIZdiO7ACA==
+X-Received: by 2002:adf:be0f:: with SMTP id
+ n15mr26247143wrh.267.1549027727464;
+ Fri, 01 Feb 2019 05:28:47 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id w18sm8240966wru.54.2019.02.01.05.28.46
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:46 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 05/16] gpu: host1x: Use direct DMA with IOMMU API usage
+Date: Fri,  1 Feb 2019 14:28:26 +0100
+Message-Id: <20190201132837.12327-6-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+If we use the IOMMU API directly to map buffers into host1x' IOVA space,
+we must make sure that the DMA API doesn't already set up a mapping, or
+else translation will fail.
+
+The direct DMA API allows us to allocate memory that will not be mapped
+through an IOMMU automatically.
+
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/host1x/cdma.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/host1x/cdma.c b/drivers/gpu/host1x/cdma.c
+index e2d106fa3c0b..a96c4dd1e449 100644
+--- a/drivers/gpu/host1x/cdma.c
++++ b/drivers/gpu/host1x/cdma.c
+@@ -19,6 +19,7 @@
+ 
+ #include <asm/cacheflush.h>
+ #include <linux/device.h>
++#include <linux/dma-direct.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/host1x.h>
+ #include <linux/interrupt.h>
+@@ -70,6 +71,7 @@ static void host1x_pushbuffer_destroy(struct push_buffer *pb)
+  */
+ static int host1x_pushbuffer_init(struct push_buffer *pb)
+ {
++	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
+ 	struct host1x_cdma *cdma = pb_to_cdma(pb);
+ 	struct host1x *host1x = cdma_to_host1x(cdma);
+ 	struct iova *alloc;
+@@ -91,8 +93,8 @@ static int host1x_pushbuffer_init(struct push_buffer *pb)
+ 
+ 		size = iova_align(&host1x->iova, size);
+ 
+-		pb->mapped = dma_alloc_wc(host1x->dev, size, &pb->phys,
+-					  GFP_KERNEL);
++		pb->mapped = dma_direct_alloc(host1x->dev, size, &pb->phys,
++					      GFP_KERNEL, attrs);
+ 		if (!pb->mapped)
+ 			return -ENOMEM;
+ 
+@@ -127,7 +129,10 @@ static int host1x_pushbuffer_init(struct push_buffer *pb)
+ iommu_free_iova:
+ 	__free_iova(&host1x->iova, alloc);
+ iommu_free_mem:
+-	dma_free_wc(host1x->dev, size, pb->mapped, pb->phys);
++	if (host1x->domain)
++		dma_direct_free(host1x->dev, size, pb->mapped, pb->phys, attrs);
++	else
++		dma_free_wc(host1x->dev, size, pb->mapped, pb->phys);
+ 
+ 	return err;
+ }
+
+From patchwork Fri Feb  1 13:28:27 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792767
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id E46C8922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id D44BE2FAD2
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id C7D7531409; Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 8262F31084
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 264FE6EE49;
+	Fri,  1 Feb 2019 13:28:55 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com
+ [IPv6:2a00:1450:4864:20::443])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 12E2F6EE47
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:52 +0000 (UTC)
+Received: by mail-wr1-x443.google.com with SMTP id b4so179771wrq.10
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:51 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=H6oxxYeF69Pq45FSTtSVXJ7NZYF5O9gE4IxYJVdAZDA=;
+ b=kor6/h432PUEVlglJJUteimzsr9TyVc0E4tBf4TFnSjtzatNoBs8/nkLy3I8vYXhaT
+ n7ls25M79hI4rC0v14PVv9eJzbXRRVvUVDPsedRIvaneG5hGaDhyKSQ68lFaIAObrzyL
+ RzGXUESKksRD4Z4uP+YmU2/t6cwTtffbWlPnxRv0hafaoPY7T2DFBrC/zxrhqV8Bysm2
+ 7ZD3e9Ypa8OcgXSziM5g+WFrwGm6wP0rko2u8rhrkwHWTDoJAfDQKluryTlL+PRXMHyL
+ X3vlNQde/0pec3McHAKnq9funQYI5gzHY2q/aNXTzsCM2dMeRzEvNVQQ3mA6zWohBlmQ
+ ChXA==
+X-Gm-Message-State: AJcUukdxFx9vsHIfs8kCdpOMz70lvb/lVJO3vlnfA7Jf2/c8IIvkhEUY
+ oiXxfs9Fj8nkrhtLGysWxwhhGlxzaRk=
+X-Google-Smtp-Source: 
+ ALg8bN6gGfZkja8X3orQ4WQB+1XtEYJuV+sv3tz/pCTdzrf9YaMs9U7wNoNJ9yH5Z0PFkgEtWLmxxA==
+X-Received: by 2002:a5d:6988:: with SMTP id g8mr37073193wru.33.1549027728934;
+ Fri, 01 Feb 2019 05:28:48 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id b13sm5597369wrn.28.2019.02.01.05.28.48
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:48 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 06/16] gpu: host1x: Restrict IOVA space to DMA mask
+Date: Fri,  1 Feb 2019 14:28:27 +0100
+Message-Id: <20190201132837.12327-7-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+On Tegra186 and later, the ARM SMMU provides an input address space that
+is 48 bits wide. However, memory clients can only address up to 40 bits.
+If the geometry is used as-is, allocations of IOVA space can end up in a
+region that is not addressable by the memory clients.
+
+To fix this, restrict the IOVA space to the DMA mask of the host1x
+device.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/host1x/dev.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 4c044ee54fe6..544b67f2b3ff 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -283,6 +283,8 @@ static int host1x_probe(struct platform_device *pdev)
+ 	host->group = iommu_group_get(&pdev->dev);
+ 	if (host->group) {
+ 		struct iommu_domain_geometry *geometry;
++		u64 mask = dma_get_mask(host->dev);
++		dma_addr_t start, end;
+ 		unsigned long order;
+ 
+ 		err = iova_cache_get();
+@@ -310,11 +312,12 @@ static int host1x_probe(struct platform_device *pdev)
+ 		}
+ 
+ 		geometry = &host->domain->geometry;
++		start = geometry->aperture_start & mask;
++		end = geometry->aperture_end & mask;
+ 
+ 		order = __ffs(host->domain->pgsize_bitmap);
+-		init_iova_domain(&host->iova, 1UL << order,
+-				 geometry->aperture_start >> order);
+-		host->iova_end = geometry->aperture_end;
++		init_iova_domain(&host->iova, 1UL << order, start >> order);
++		host->iova_end = end;
+ 	}
+ 
+ skip_iommu:
+
+From patchwork Fri Feb  1 13:28:28 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792763
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id EB634922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:57 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id D80D82CDD8
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:57 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id CA8E92AEEE; Fri,  1 Feb 2019 13:28:57 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 4CBEC3147D
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:28:57 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 56A596EE48;
+	Fri,  1 Feb 2019 13:28:54 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com
+ [IPv6:2a00:1450:4864:20::442])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 4BB066EE46
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:53 +0000 (UTC)
+Received: by mail-wr1-x442.google.com with SMTP id x10so7085871wrs.8
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=GOaJAoLDNDGFGgME5TwNws7SLx9pWmtcTffM/V8PulI=;
+ b=VaGcVIN7hSAkokV6KpJ6d1WAw8L1wRnWa1SfdHmMdho1CaWsml+4/+7EJ3Tb56t4ki
+ KaUtDVx8KZRXZ8TqoMEQu6IJWNgiHKaM8yNtDqX++j0rUQB2EvTF4Kc/FLamSEUet4s3
+ DTxUVLEsotkUL0mnkqiuwZ5o0Fw+x05jHg2DjW55WvmGXdOfn8+XmpTg254/f7K80viM
+ 07NJFxjj2/7Muxfamgv8MWK25Z3T7Wtkennpobly4EhGhpV39E6ZWR69OfGSdg0OX5Ol
+ T39hSMEX+xaXaaIpgDWbM8Z3wRSrG7KyvicCQxE01/DyAna18u+lxei0tFblwc73qvrU
+ sUzg==
+X-Gm-Message-State: AJcUukcVIeo3HMLWrYiFBhAFE/yKiioL4GJuwnseqTuOI8xXHE0Z0n8U
+ kzNt3q5YgUF5mynhFMe+khE=
+X-Google-Smtp-Source: 
+ ALg8bN6L2wiVHRZmVWzuU9LPF2XFSwIOn7C6RjynjEKfZxTdL4DIr3zCel/M0/BGgFjjyV2IiV56og==
+X-Received: by 2002:a5d:4b01:: with SMTP id v1mr37066870wrq.5.1549027730361;
+ Fri, 01 Feb 2019 05:28:50 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id y13sm4774531wrn.73.2019.02.01.05.28.49
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:49 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 07/16] gpu: host1x: Support 40-bit addressing on Tegra186
+Date: Fri,  1 Feb 2019 14:28:28 +0100
+Message-Id: <20190201132837.12327-8-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The host1x and clients instantiated on Tegra186 support addressing 40
+bits of memory.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/host1x/dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 544b67f2b3ff..ee3c7b81a29d 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -136,7 +136,7 @@ static const struct host1x_info host1x06_info = {
+ 	.nb_bases = 16,
+ 	.init = host1x06_init,
+ 	.sync_offset = 0x0,
+-	.dma_mask = DMA_BIT_MASK(34),
++	.dma_mask = DMA_BIT_MASK(40),
+ 	.has_hypervisor = true,
+ 	.num_sid_entries = ARRAY_SIZE(tegra186_sid_table),
+ 	.sid_table = tegra186_sid_table,
+
+From patchwork Fri Feb  1 13:28:29 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792769
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id D44BE746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id BF4CE2FA4C
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id B17EB2D88B; Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 5B36B2FAD2
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id DC66F6EE47;
+	Fri,  1 Feb 2019 13:28:55 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com
+ [IPv6:2a00:1450:4864:20::443])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id B40C46EE47
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:53 +0000 (UTC)
+Received: by mail-wr1-x443.google.com with SMTP id a16so1496705wrv.0
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:53 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=Z463s4eMqli6pxEQVh8/leiiDkOb6ijsQv8HwlAki8c=;
+ b=uA5J0dLAExa0uNmimBoC/lEqW1T0nnILMI9ZPxcdKgYVKpg9HVlG61NMWk29aUxLDJ
+ 9BnsPohpojXtLWpNcESlQ7ZnSbacdAZ5MGZjrbmq6dF5gT3KlJ/mml09F+72YLiHPCnB
+ UQjd6b8BrsSMSc1Ky5yvv3VtZ2/OJ7P8/IRMnQ8eCCRw2/Kix/HH5T8ZS0At37lNH7e+
+ SFDC3h5S1gVYx7TkrWRW64m8Z5w14b8mCNPfHTvK9ykLY11Cf85+6lNxgdoDL6tljMzh
+ i/njFktQVz3xyxMoOftJVjQs3R/YTyx9pomu0+S3pZsOYTRHMIhm5hlAL/R14TZn+e6T
+ pSXw==
+X-Gm-Message-State: AJcUukfqfr6EyKilKz4X3VUy6PDpRwmcE6VKvKWtCg9dwLL7cSWLykPP
+ YMIbSMxYUvnJvK2UsQ8/BIE=
+X-Google-Smtp-Source: 
+ ALg8bN7ft0BCs1tEgrAPVEp/YFb+mxy9x2RxfCzLtdXwAAoba/Gt3nRcy4j8oJMV1b/UUCWFntwKTA==
+X-Received: by 2002:adf:ba8e:: with SMTP id
+ p14mr37731216wrg.230.1549027731792;
+ Fri, 01 Feb 2019 05:28:51 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id 141sm966641wmt.36.2019.02.01.05.28.51
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:51 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 08/16] gpu: host1x: Use correct semantics for
+ HOST1X_CHANNEL_DMAEND
+Date: Fri,  1 Feb 2019 14:28:29 +0100
+Message-Id: <20190201132837.12327-9-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The HOST1X_CHANNEL_DMAEND is an offset relative to the value written to
+the HOST1X_CHANNEL_DMASTART register, but it is currently treated as an
+absolute address. This can cause SMMU faults if the CDMA fetches past a
+pushbuffer's IOMMU mapping.
+
+Properly setting the DMAEND prevents the CDMA from fetching beyond that
+address and avoid such issues. This is currently not observed because a
+whole (almost) page of essentially scratch space absorbs any excessive
+prefetching by CDMA. However, changing the number of slots in the push
+buffer can trigger these SMMU faults.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/host1x/hw/cdma_hw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/host1x/hw/cdma_hw.c b/drivers/gpu/host1x/hw/cdma_hw.c
+index 485aef5761af..a24c090ac96f 100644
+--- a/drivers/gpu/host1x/hw/cdma_hw.c
++++ b/drivers/gpu/host1x/hw/cdma_hw.c
+@@ -75,7 +75,7 @@ static void cdma_start(struct host1x_cdma *cdma)
+ 
+ 	cdma->last_pos = cdma->push_buffer.pos;
+ 	start = cdma->push_buffer.dma;
+-	end = start + cdma->push_buffer.size + 4;
++	end = cdma->push_buffer.size + 4;
+ 
+ 	host1x_ch_writel(ch, HOST1X_CHANNEL_DMACTRL_DMASTOP,
+ 			 HOST1X_CHANNEL_DMACTRL);
+@@ -126,7 +126,7 @@ static void cdma_timeout_restart(struct host1x_cdma *cdma, u32 getptr)
+ 			 HOST1X_CHANNEL_DMACTRL);
+ 
+ 	start = cdma->push_buffer.dma;
+-	end = start + cdma->push_buffer.size + 4;
++	end = cdma->push_buffer.size + 4;
+ 
+ 	/* set base, end pointer (all of memory) */
+ 	host1x_ch_writel(ch, lower_32_bits(start), HOST1X_CHANNEL_DMASTART);
+
+From patchwork Fri Feb  1 13:28:30 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792771
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 88B81746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 75CC62FA4C
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 6A0CA31084; Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 0B42830B13
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id E10886EE4A;
+	Fri,  1 Feb 2019 13:28:56 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com
+ [IPv6:2a00:1450:4864:20::442])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id F16B16EE47
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:54 +0000 (UTC)
+Received: by mail-wr1-x442.google.com with SMTP id t6so7034345wrr.12
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:54 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=HmJAdh3c1ExrllzdZ4a9mhycg+Byap3LLpqcDsQcNRA=;
+ b=jC6ye9AXuztYg9D82um2tuRX8BiXXok83TDQ1ccB1sEIjKP2ofZo8zon9VyJyl3a1M
+ Qa1gh2e2OaXXrfk7kCv3yvAc8WGNZswUujRScRFwxc3R8cCuoeBbxHP7Ktltd+O9U0Ab
+ RNxcwuVys4auzjK/58A531XZGHNt4S2/TYTq2BY9eg5bZpR8hz+PCGB5Uo6TDHkHpqFe
+ UqJYVFLf/3VBXqmQpEYIBWCHEPpBS4i+jRYGHKNX8SPodKLK4np/DmKh7kGKriyTRv2k
+ o4DPstvI/PjRJY/q1cboKkYhKH7OJ6ICwZE87sUdDpE0NAd9i1BDRMIL+IO0r4WR5eVW
+ xmJQ==
+X-Gm-Message-State: AHQUAuYG7vhMyRkhsNckIneFCJUFT7L/CQzp33G6DyitexUBeUyX1ZDi
+ n/INF/G+2neFa9zl9UWei7A=
+X-Google-Smtp-Source: 
+ AHgI3IahhXchHzpiLK2szwQHNvnShmP/ChMXTmyhD6ofFytMtUEFcKaYBAglXbSDWsUiMHv+0bL9sg==
+X-Received: by 2002:a5d:678b:: with SMTP id v11mr8194070wru.245.1549027733261;
+ Fri, 01 Feb 2019 05:28:53 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id k135sm3482994wmd.42.2019.02.01.05.28.52
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:52 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 09/16] gpu: host1x: Optimize CDMA push buffer memory usage
+Date: Fri,  1 Feb 2019 14:28:30 +0100
+Message-Id: <20190201132837.12327-10-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The host1x CDMA push buffer is terminated by a special opcode (RESTART)
+that tells the CDMA to wrap around to the beginning of the push buffer.
+To accomodate the RESTART opcode, an extra 4 bytes are allocated on top
+of the 512 * 8 = 4096 bytes needed for the 512 slots (1 slot = 2 words)
+that are used for other commands passed to CDMA. This requires that two
+memory pages are allocated, but most of the second page (4092 bytes) is
+never used.
+
+Decrease the number of slots to 511 so that the RESTART opcode fits
+within the page. Adjust the push buffer wraparound code to take into
+account push buffer sizes that are not a power of two.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/host1x/cdma.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/host1x/cdma.c b/drivers/gpu/host1x/cdma.c
+index a96c4dd1e449..50c1370b56c7 100644
+--- a/drivers/gpu/host1x/cdma.c
++++ b/drivers/gpu/host1x/cdma.c
+@@ -42,7 +42,17 @@
+  * means that the push buffer is full, not empty.
+  */
+ 
+-#define HOST1X_PUSHBUFFER_SLOTS	512
++/*
++ * Typically the commands written into the push buffer are a pair of words. We
++ * use slots to represent each of these pairs and to simplify things. Note the
++ * strange number of slots allocated here. 512 slots will fit exactly within a
++ * single memory page. We also need one additional word at the end of the push
++ * buffer for the RESTART opcode that will instruct the CDMA to jump back to
++ * the beginning of the push buffer. With 512 slots, this means that we'll use
++ * 2 memory pages and waste 4092 bytes of the second page that will never be
++ * used.
++ */
++#define HOST1X_PUSHBUFFER_SLOTS	511
+ 
+ /*
+  * Clean up push buffer resources
+@@ -148,7 +158,10 @@ static void host1x_pushbuffer_push(struct push_buffer *pb, u32 op1, u32 op2)
+ 	WARN_ON(pb->pos == pb->fence);
+ 	*(p++) = op1;
+ 	*(p++) = op2;
+-	pb->pos = (pb->pos + 8) & (pb->size - 1);
++	pb->pos += 8;
++
++	if (pb->pos >= pb->size)
++		pb->pos -= pb->size;
+ }
+ 
+ /*
+@@ -158,7 +171,10 @@ static void host1x_pushbuffer_push(struct push_buffer *pb, u32 op1, u32 op2)
+ static void host1x_pushbuffer_pop(struct push_buffer *pb, unsigned int slots)
+ {
+ 	/* Advance the next write position */
+-	pb->fence = (pb->fence + slots * 8) & (pb->size - 1);
++	pb->fence += slots * 8;
++
++	if (pb->fence >= pb->size)
++		pb->fence -= pb->size;
+ }
+ 
+ /*
+@@ -166,7 +182,12 @@ static void host1x_pushbuffer_pop(struct push_buffer *pb, unsigned int slots)
+  */
+ static u32 host1x_pushbuffer_space(struct push_buffer *pb)
+ {
+-	return ((pb->fence - pb->pos) & (pb->size - 1)) / 8;
++	unsigned int fence = pb->fence;
++
++	if (pb->fence < pb->pos)
++		fence += pb->size;
++
++	return (fence - pb->pos) / 8;
+ }
+ 
+ /*
+
+From patchwork Fri Feb  1 13:28:31 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792773
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id F1D34922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:08 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id D2511317B2
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:08 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id C49CE31409; Fri,  1 Feb 2019 13:29:08 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 6E5AD31409
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:08 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id B43E36EE4B;
+	Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com
+ [IPv6:2a00:1450:4864:20::443])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 6F9536EE4D
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:56 +0000 (UTC)
+Received: by mail-wr1-x443.google.com with SMTP id x10so7086155wrs.8
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:56 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=sQ/7dwi787FeX2aV2MwVe3MY8/8/IbRO+NqYWgEFvIg=;
+ b=proJjwXar+fQoFdXe9m9VrbbGA/Wv+GJu1N4cVc92BRTPI0DTlWJLB+WTxb37ZJD16
+ j0H1clfiQCyWXDPrmq0F5DLOgc8gJUOGihW1YlKJ3Rk6erAi5EoD+HrTdPP1JmHEPhit
+ LDgrPQ8MoGU6mAFG3twYl093+EqIyf2FXuPfwSOr9kd8qlIQdvs/K718m12DwH/abVi3
+ tWhd1Qq4s2jUqd5dQyOum677MqyCQJZ2cM9814Ai7O3WcuCDUAIQaCcGAIYFQ5GbBsVg
+ Jge83zXBd8jFGUV+kG/bHjEf27XXM3BSLm7lBBMPk+zPNOkIWvqXqh01jL3ahQFSHqpd
+ Wdyw==
+X-Gm-Message-State: AJcUukczhP4P0xnbQUZqWEcGAvL6qPQf73shYccChrr5EcxNPKW7MBLi
+ F2DCPQt/VcU7ih+saWANvRLv53bHmV0=
+X-Google-Smtp-Source: 
+ ALg8bN6wCF8gncFvv/wUPqQ94eVwzIPSNYVJQW/HRrvPhkzeK9IQ67BjJF98Al2caJ6jHK4Io/V8WA==
+X-Received: by 2002:adf:9f10:: with SMTP id
+ l16mr40197862wrf.206.1549027734829;
+ Fri, 01 Feb 2019 05:28:54 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id v1sm13888316wrw.90.2019.02.01.05.28.53
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:54 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 10/16] drm/tegra: Store parent pointer in Tegra DRM clients
+Date: Fri,  1 Feb 2019 14:28:31 +0100
+Message-Id: <20190201132837.12327-11-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Tegra DRM clients need access to their parent, so store a pointer to it
+upon registration. It's technically possible to get at this by going via
+the host1x client's parent and getting the driver data, but that's quite
+complicated and not very transparent. It's much more straightforward and
+natural to let the children know about their parent.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/drm/tegra/drm.c | 2 ++
+ drivers/gpu/drm/tegra/drm.h | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 4b70ce664c41..61dcbd218ffc 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -1041,6 +1041,7 @@ int tegra_drm_register_client(struct tegra_drm *tegra,
+ {
+ 	mutex_lock(&tegra->clients_lock);
+ 	list_add_tail(&client->list, &tegra->clients);
++	client->drm = tegra;
+ 	mutex_unlock(&tegra->clients_lock);
+ 
+ 	return 0;
+@@ -1051,6 +1052,7 @@ int tegra_drm_unregister_client(struct tegra_drm *tegra,
+ {
+ 	mutex_lock(&tegra->clients_lock);
+ 	list_del_init(&client->list);
++	client->drm = NULL;
+ 	mutex_unlock(&tegra->clients_lock);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 7370f7a0fdb8..70154c253d45 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -88,6 +88,7 @@ int tegra_drm_submit(struct tegra_drm_context *context,
+ struct tegra_drm_client {
+ 	struct host1x_client base;
+ 	struct list_head list;
++	struct tegra_drm *drm;
+ 
+ 	unsigned int version;
+ 	const struct tegra_drm_client_ops *ops;
+
+From patchwork Fri Feb  1 13:28:32 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792777
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id E57D2746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:11 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id BDE11317B2
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:11 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id B0EF33193B; Fri,  1 Feb 2019 13:29:11 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 504682FCA4
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:11 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 9A4106EE4C;
+	Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com
+ [IPv6:2a00:1450:4864:20::444])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id D944C6EE4B
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:28:59 +0000 (UTC)
+Received: by mail-wr1-x444.google.com with SMTP id u4so7104192wrp.3
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:28:59 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=tvRwEnb1658BXmg0d7HebC9K6VaTA9OBNz8ovsbsOJU=;
+ b=PkZA6lzeoLwsJeLxdFa2FRUr1UI+ndFvAx71RQejArUP1Zfk9VWuKxLWkWgdifRasc
+ FNsXMzAJDiPh4d0TDJoRMr3GiZ2NtiMqqFE09NlCdbEriH4gFxPOI902s9xul2ts2O/3
+ mD6tuqKInJJsHekTbWlqk3J4namDqBtEqG3j9Lr4TMu3xtyFZ1qvLhyhtFRRBtR26GFU
+ HPSMlWZ6k58YM3j97zsMqsXYldQVLcXBhadwTTmMKYhFGFvmKGbLRExKd4oQ8Y1aqrZ4
+ uiIX5wdgVvgWmQHfZmfl423rGRzj3++pGFYKrELY1n+7KRDMkUc05xehiTuJ7phlT4tt
+ P09Q==
+X-Gm-Message-State: AJcUukdgb2iv79Zmpdx0Dd1HLW+FpmTBBIJk4HtaRs++EELlkTFwhuE4
+ 0H2GeLHFnlG7/Kkq5VLMFJY=
+X-Google-Smtp-Source: 
+ ALg8bN4Q36wGRdKbLoCsTtcIlX9bZXnQbyY2jKMX7Br077QRpVcoCdyBVhwo6rDGZhUvQ0N+qUNWHQ==
+X-Received: by 2002:adf:97d1:: with SMTP id
+ t17mr38843625wrb.283.1549027736376;
+ Fri, 01 Feb 2019 05:28:56 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id o16sm13320602wrn.11.2019.02.01.05.28.55
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:55 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 11/16] drm/tegra: vic: Load firmware on demand
+Date: Fri,  1 Feb 2019 14:28:32 +0100
+Message-Id: <20190201132837.12327-12-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Loading the firmware requires an allocation of IOVA space to make sure
+that the VIC's Falcon microcontroller can read the firmware if address
+translation via the SMMU is enabled.
+
+However, the allocation currently happens at a time where the geometry
+of an IOMMU domain may not have been initialized yet. This happens for
+example on Tegra186 and later where an ARM SMMU is used. Domains which
+are created by the ARM SMMU driver postpone the geometry setup until a
+device is attached to the domain. This is because IOMMU domains aren't
+attached to a specific IOMMU instance at allocation time and hence the
+input address space, which defines the geometry, is not known yet.
+
+Work around this by postponing the firmware load until it is needed at
+the time where a channel is opened to the VIC. At this time the shared
+IOMMU domain's geometry has been properly initialized.
+
+As a byproduct this allows the Tegra DRM to be created in the absence
+of VIC firmware, since the VIC initialization no longer fails if the
+firmware can't be found.
+
+Based on an earlier patch by Dmitry Osipenko <digetx@gmail.com>.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/drm/tegra/vic.c | 53 +++++++++++++++++++++++++------------
+ 1 file changed, 36 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/vic.c b/drivers/gpu/drm/tegra/vic.c
+index d47983deb1cf..739b894661ab 100644
+--- a/drivers/gpu/drm/tegra/vic.c
++++ b/drivers/gpu/drm/tegra/vic.c
+@@ -181,13 +181,6 @@ static int vic_init(struct host1x_client *client)
+ 		vic->domain = tegra->domain;
+ 	}
+ 
+-	if (!vic->falcon.data) {
+-		vic->falcon.data = tegra;
+-		err = falcon_load_firmware(&vic->falcon);
+-		if (err < 0)
+-			goto detach;
+-	}
+-
+ 	vic->channel = host1x_channel_request(client->dev);
+ 	if (!vic->channel) {
+ 		err = -ENOMEM;
+@@ -246,6 +239,30 @@ static const struct host1x_client_ops vic_client_ops = {
+ 	.exit = vic_exit,
+ };
+ 
++static int vic_load_firmware(struct vic *vic)
++{
++	int err;
++
++	if (vic->falcon.data)
++		return 0;
++
++	vic->falcon.data = vic->client.drm;
++
++	err = falcon_read_firmware(&vic->falcon, vic->config->firmware);
++	if (err < 0)
++		goto cleanup;
++
++	err = falcon_load_firmware(&vic->falcon);
++	if (err < 0)
++		goto cleanup;
++
++	return 0;
++
++cleanup:
++	vic->falcon.data = NULL;
++	return err;
++}
++
+ static int vic_open_channel(struct tegra_drm_client *client,
+ 			    struct tegra_drm_context *context)
+ {
+@@ -256,19 +273,25 @@ static int vic_open_channel(struct tegra_drm_client *client,
+ 	if (err < 0)
+ 		return err;
+ 
++	err = vic_load_firmware(vic);
++	if (err < 0)
++		goto rpm_put;
++
+ 	err = vic_boot(vic);
+-	if (err < 0) {
+-		pm_runtime_put(vic->dev);
+-		return err;
+-	}
++	if (err < 0)
++		goto rpm_put;
+ 
+ 	context->channel = host1x_channel_get(vic->channel);
+ 	if (!context->channel) {
+-		pm_runtime_put(vic->dev);
+-		return -ENOMEM;
++		err = -ENOMEM;
++		goto rpm_put;
+ 	}
+ 
+ 	return 0;
++
++rpm_put:
++	pm_runtime_put(vic->dev);
++	return err;
+ }
+ 
+ static void vic_close_channel(struct tegra_drm_context *context)
+@@ -372,10 +395,6 @@ static int vic_probe(struct platform_device *pdev)
+ 	if (err < 0)
+ 		return err;
+ 
+-	err = falcon_read_firmware(&vic->falcon, vic->config->firmware);
+-	if (err < 0)
+-		goto exit_falcon;
+-
+ 	platform_set_drvdata(pdev, vic);
+ 
+ 	INIT_LIST_HEAD(&vic->client.base.list);
+
+From patchwork Fri Feb  1 13:28:33 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792775
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 35511922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:10 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 0D77731830
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:10 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 012FB2F9CC; Fri,  1 Feb 2019 13:29:09 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id A0F6B2A8DE
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:09 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 5A66F6EE4F;
+	Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x443.google.com (mail-wr1-x443.google.com
+ [IPv6:2a00:1450:4864:20::443])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 14EFB6EE4C
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+Received: by mail-wr1-x443.google.com with SMTP id f7so7167860wrp.1
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:29:00 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=xAKKOZF9oFirutnoZo4VmTh+czKnVpJM7PY4292UHtM=;
+ b=l+Y8sTMUpYYXpFIGvG95iT+7c1D16EiYTIZ++E5UY34+6p4lSub20IExLDg72S76VW
+ rzChMocfchPMTmseMZoaMLvQrnK/dv8+xUWnvIXO7Njo1v3RSjItGG+fwD8pIR+fR0rm
+ i+plC/GoZkyBnSSzY+C557rNSm4kRnwDTmn+CambOuoY4Mk71Ub1l1QSVPC29s8N/Dby
+ CZz2FvIIv2BBIbWYD9kf4UPD5DBsZQaqypBEqb1xjXc+pQf/jJT3s8gN11hjvKDvaSKl
+ har1qbBk3doOEfQ5FzWMVTFOJCbBflh/xV6aUoKLpGYpu/UR1K92lzyhYe7BQTV13l9X
+ SWxA==
+X-Gm-Message-State: AJcUuke/xRFIa+gZCb+eHdvqitQhbNQ0rtyMNJEEa+ARVK+9+BYBERDZ
+ 6ifqKEMe4iw4nKIR48iXHUo=
+X-Google-Smtp-Source: 
+ ALg8bN7nRefhzWjim24cDe6FiyFLz9iv3f9FSQO4+fQ6nJn5MdZVEDO8lKApUOEYnIAjExx/pQz+GA==
+X-Received: by 2002:a5d:5111:: with SMTP id s17mr37572842wrt.43.1549027738011;
+ Fri, 01 Feb 2019 05:28:58 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id t5sm1983466wmg.43.2019.02.01.05.28.57
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:57 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 12/16] drm/tegra: Setup shared IOMMU domain after
+ initialization
+Date: Fri,  1 Feb 2019 14:28:33 +0100
+Message-Id: <20190201132837.12327-13-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Move initialization of the shared IOMMU domain after the host1x device
+has been initialized. At this point all the Tegra DRM clients have been
+attached to the shared IOMMU domain.
+
+This is important because Tegra186 and later use an ARM SMMU, for which
+the driver defers setting up the geometry for a domain until a device is
+attached to it. This is to ensure that the domain is properly set up for
+a specific ARM SMMU instance, which is unknown at allocation time.
+
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/drm/tegra/drm.c | 54 ++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 61dcbd218ffc..271c7a5fc954 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -92,10 +92,6 @@ static int tegra_drm_load(struct drm_device *drm, unsigned long flags)
+ 		return -ENOMEM;
+ 
+ 	if (iommu_present(&platform_bus_type)) {
+-		u64 carveout_start, carveout_end, gem_start, gem_end;
+-		struct iommu_domain_geometry *geometry;
+-		unsigned long order;
+-
+ 		tegra->domain = iommu_domain_alloc(&platform_bus_type);
+ 		if (!tegra->domain) {
+ 			err = -ENOMEM;
+@@ -105,27 +101,6 @@ static int tegra_drm_load(struct drm_device *drm, unsigned long flags)
+ 		err = iova_cache_get();
+ 		if (err < 0)
+ 			goto domain;
+-
+-		geometry = &tegra->domain->geometry;
+-		gem_start = geometry->aperture_start;
+-		gem_end = geometry->aperture_end - CARVEOUT_SZ;
+-		carveout_start = gem_end + 1;
+-		carveout_end = geometry->aperture_end;
+-
+-		order = __ffs(tegra->domain->pgsize_bitmap);
+-		init_iova_domain(&tegra->carveout.domain, 1UL << order,
+-				 carveout_start >> order);
+-
+-		tegra->carveout.shift = iova_shift(&tegra->carveout.domain);
+-		tegra->carveout.limit = carveout_end >> tegra->carveout.shift;
+-
+-		drm_mm_init(&tegra->mm, gem_start, gem_end - gem_start + 1);
+-		mutex_init(&tegra->mm_lock);
+-
+-		DRM_DEBUG("IOMMU apertures:\n");
+-		DRM_DEBUG("  GEM: %#llx-%#llx\n", gem_start, gem_end);
+-		DRM_DEBUG("  Carveout: %#llx-%#llx\n", carveout_start,
+-			  carveout_end);
+ 	}
+ 
+ 	mutex_init(&tegra->clients_lock);
+@@ -159,6 +134,35 @@ static int tegra_drm_load(struct drm_device *drm, unsigned long flags)
+ 	if (err < 0)
+ 		goto fbdev;
+ 
++	if (tegra->domain) {
++		u64 carveout_start, carveout_end, gem_start, gem_end;
++		dma_addr_t start, end;
++		unsigned long order;
++
++		start = tegra->domain->geometry.aperture_start;
++		end = tegra->domain->geometry.aperture_end;
++
++		gem_start = start;
++		gem_end = end - CARVEOUT_SZ;
++		carveout_start = gem_end + 1;
++		carveout_end = end;
++
++		order = __ffs(tegra->domain->pgsize_bitmap);
++		init_iova_domain(&tegra->carveout.domain, 1UL << order,
++				 carveout_start >> order);
++
++		tegra->carveout.shift = iova_shift(&tegra->carveout.domain);
++		tegra->carveout.limit = carveout_end >> tegra->carveout.shift;
++
++		drm_mm_init(&tegra->mm, gem_start, gem_end - gem_start + 1);
++		mutex_init(&tegra->mm_lock);
++
++		DRM_DEBUG("IOMMU apertures:\n");
++		DRM_DEBUG("  GEM: %#llx-%#llx\n", gem_start, gem_end);
++		DRM_DEBUG("  Carveout: %#llx-%#llx\n", carveout_start,
++			  carveout_end);
++	}
++
+ 	if (tegra->hub) {
+ 		err = tegra_display_hub_prepare(tegra->hub);
+ 		if (err < 0)
+
+From patchwork Fri Feb  1 13:28:34 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792779
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 3A4D2922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:13 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 03CEB314EA
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:13 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id EC4DF317C6; Fri,  1 Feb 2019 13:29:12 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id A5BB4314EA
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:12 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 0E88A6EE4D;
+	Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com
+ [IPv6:2a00:1450:4864:20::342])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id 390686EE4D
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:29:01 +0000 (UTC)
+Received: by mail-wm1-x342.google.com with SMTP id g67so6207772wmd.2
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:29:01 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=cUH3hZoO0g/LZ+pZUMo8PX/7722b7rvBvBxyOPDoCcc=;
+ b=IF0aO+9Ra+v36wEPyrtLfNYkNALiViaX+4UjvXXce9K5FriCN4x5sZ8EAcV0W/ZzU7
+ oB3ZikllQY8YxmwUMkWlMqpCrhT76wV5uKlNUK3iRMoKlowkji4VWugzN+9w/CvT+yB5
+ 8l0UPcCkrb++3AWI1JjquwrS6V0UFbnH7WADTKfLTojPdJoH5ZJabUQbp13zvVVmH2qP
+ M7sC3dWSMBru5b/iAp7FKq03UJsN1hZs03HucGc31zbrAER9rAANJcuXOxQakC9Cahg9
+ XftLgUBz7Cv2vcstclx8hJzV4epOYDxjDHKmawDVtK5M31e+YsSKWihUiu0uoBxNbPm2
+ rBLA==
+X-Gm-Message-State: AHQUAuZwlEuDw8praJG6AjQbwHQfVh/yyS/b0lpg8sUdB2lbKUK14v1J
+ Q+gV5KA3xvvKxD5X8txN7JA=
+X-Google-Smtp-Source: 
+ AHgI3IYZams16bYkKw7SyylfQaT0UU0+K1Huz+TUWLb5CnsuuIh2CPuXuNoHn2wXUljuQ3WaRa5Lag==
+X-Received: by 2002:a1c:8484:: with SMTP id
+ g126mr2550136wmd.117.1549027739404;
+ Fri, 01 Feb 2019 05:28:59 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id m15sm10401476wrr.95.2019.02.01.05.28.58
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:28:58 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 13/16] drm/tegra: Restrict IOVA space to DMA mask
+Date: Fri,  1 Feb 2019 14:28:34 +0100
+Message-Id: <20190201132837.12327-14-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+On Tegra186 and later, the ARM SMMU provides an input address space that
+is 48 bits wide. However, memory clients can only address up to 40 bits.
+If the geometry is used as-is, allocations of IOVA space can end up in a
+region that cannot be addressed by the memory clients.
+
+To fix this, restrict the IOVA space to the DMA mask of the host1x
+device. Note that, technically, the IOVA space needs to be restricted to
+the intersection of the DMA masks for all clients that are attached to
+the IOMMU domain. In practice using the DMA mask of the host1x device is
+sufficient because all host1x clients share the same DMA mask.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+---
+ drivers/gpu/drm/tegra/drm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 271c7a5fc954..0c5f1e6a0446 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -136,11 +136,12 @@ static int tegra_drm_load(struct drm_device *drm, unsigned long flags)
+ 
+ 	if (tegra->domain) {
+ 		u64 carveout_start, carveout_end, gem_start, gem_end;
++		u64 dma_mask = dma_get_mask(&device->dev);
+ 		dma_addr_t start, end;
+ 		unsigned long order;
+ 
+-		start = tegra->domain->geometry.aperture_start;
+-		end = tegra->domain->geometry.aperture_end;
++		start = tegra->domain->geometry.aperture_start & dma_mask;
++		end = tegra->domain->geometry.aperture_end & dma_mask;
+ 
+ 		gem_start = start;
+ 		gem_end = end - CARVEOUT_SZ;
+
+From patchwork Fri Feb  1 13:28:35 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792781
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 82409922
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:14 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id 5DBC8310B9
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:14 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 51B952F9CC; Fri,  1 Feb 2019 13:29:14 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 16FB42A8DE
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:14 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 64F5E6EE53;
+	Fri,  1 Feb 2019 13:29:06 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com
+ [IPv6:2a00:1450:4864:20::341])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id C1CD46EE4C
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:29:02 +0000 (UTC)
+Received: by mail-wm1-x341.google.com with SMTP id m1so6127965wml.2
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:29:02 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=Szj9x+K4ksKuC6IxSdiFEvK08oXcBbAF9xKm8sQgM4I=;
+ b=FESeKL/MYHDaWfceMG3ka2S/RzQBxWmoUVKAtz48jMpCt1vsCD0iKDs9Biq/1UoIWG
+ 1FgHZQipSh1+aKFDHCrGpAsM0RV86ZDECrSeqtUofaimak8Ll0hToLf0XJcSsSN2sUSu
+ cXN6WlZD72UsSSCBKl4Ovnx1aGM3OGuyI58rMqurlgM0UjVlJ9hio0XHOXfiPJvxIDOf
+ PiKI6gsb2MWLp9vK6Y8CxPap8pwsGZbJFgeQAsd2xvhoAjSLwJF67Ss40bTq+E6E38KZ
+ hPGLH720OR9fWmr3Lx0Q4AN1d4KJQSedPNgDaR3THkxM4fTU3EcaoIYv5pTTonkOnA5W
+ CmBw==
+X-Gm-Message-State: AHQUAua/uK4/3XJD11DX+4IT+80mLVgHm8DHTtwz2Rf13dx4NQH8/73u
+ 4eb4/49nwAAEpraxgOPecpo=
+X-Google-Smtp-Source: 
+ AHgI3IblSe7LkBgq1DA+j58OYxDev73oOcnr1VBiEeDTjDYHAkCTqrlImcp0UTnpG41MPYyTpkBJLw==
+X-Received: by 2002:a1c:c181:: with SMTP id r123mr2495710wmf.8.1549027740875;
+ Fri, 01 Feb 2019 05:29:00 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id m14sm1159584wrx.59.2019.02.01.05.29.00
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:29:00 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 14/16] drm/tegra: vic: Do not clear driver data
+Date: Fri,  1 Feb 2019 14:28:35 +0100
+Message-Id: <20190201132837.12327-15-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Upon driver failure, the driver core will take care of clearing the
+driver data, so there's no need to do so explicitly in the driver.
+
+Reviewed-by: Dmitry Osipenko <digetx@gmail.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/drm/tegra/vic.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/vic.c b/drivers/gpu/drm/tegra/vic.c
+index 739b894661ab..55a8cc162e9d 100644
+--- a/drivers/gpu/drm/tegra/vic.c
++++ b/drivers/gpu/drm/tegra/vic.c
+@@ -412,7 +412,6 @@ static int vic_probe(struct platform_device *pdev)
+ 	err = host1x_client_register(&vic->client.base);
+ 	if (err < 0) {
+ 		dev_err(dev, "failed to register host1x client: %d\n", err);
+-		platform_set_drvdata(pdev, NULL);
+ 		goto exit_falcon;
+ 	}
+ 
+
+From patchwork Fri Feb  1 13:28:36 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792783
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 259C9746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:16 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id E17D7310B9
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:15 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id D629E31947; Fri,  1 Feb 2019 13:29:15 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 7DFD631932
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:15 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id 509FA6EE52;
+	Fri,  1 Feb 2019 13:29:07 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com
+ [IPv6:2a00:1450:4864:20::342])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id EFD7B6EE51
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:29:03 +0000 (UTC)
+Received: by mail-wm1-x342.google.com with SMTP id y139so6075661wmc.5
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:29:03 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=vG6AIuNphuzMHBFx759aEugmfd4bRy8jdS1AkMTXt/Y=;
+ b=dPT5TDk5AmFanVSb8FR7/xKKWChSpdIgBcjz6kLcmqdZBwJx80eb7DaiRMfdyJPzzV
+ MUFh/2mzkWxJvOZ5GoOV10nERUPTq9tDgBvIbYGmdgg0q1cNJYDhjri3ZTrD8yES1JVy
+ agAnl5DA7rsoi1hgWRsiTFDGxr//okrYtgsnVaoj3Zu3GV623LAqNyFp+f5oYhaunTKx
+ 4HccHLk5sORUYr31QkIwIjiQC6ClcgcEiUQW1uiP2deNNqZFWHGRMGHo1sOcQb2jRA3l
+ hdz08QeO2YwuEy2UfINp7Ts+ouysfM7197uyLyKtqIjxsD2V/zy8N1uA3ioddM7PM/r2
+ IeWA==
+X-Gm-Message-State: AHQUAuadnFBD5YGVuLCXnxA0RzVzE2IU46t8JtO6x5LMjSKLaC/Q9vNo
+ Gdmtd3QZ7znaCbR1LgzNwDo=
+X-Google-Smtp-Source: 
+ AHgI3IZvR1BALPGNkurBoMmVsxhE32GbnBS9qNdIQUrKM0cZr23zJbl12hk8zVwh3KGFKVRNR2KYGA==
+X-Received: by 2002:a1c:9692:: with SMTP id y140mr2552967wmd.67.1549027742237;
+ Fri, 01 Feb 2019 05:29:02 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id d4sm11639307wrp.89.2019.02.01.05.29.01
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:29:01 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 15/16] drm/tegra: vic: Support stream ID register
+ programming
+Date: Fri,  1 Feb 2019 14:28:36 +0100
+Message-Id: <20190201132837.12327-16-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The version of VIC found in Tegra186 and later incorporates improvements
+with regards to context isolation. As part of those improvements, stream
+ID registers were added that allow to specify separate stream IDs for
+the Falcon microcontroller and the VIC memory interface.
+
+While it is possible to also set the stream ID dynamically at runtime to
+allow userspace contexts to be completely separated, this commit doesn't
+implement that yet. Instead, the static VIC stream ID is programmed when
+the Falcon is booted. This ensures that memory accesses by the Falcon or
+the VIC are properly translated via the SMMU.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ drivers/gpu/drm/tegra/vic.c | 21 +++++++++++++++++++++
+ drivers/gpu/drm/tegra/vic.h |  9 +++++++++
+ 2 files changed, 30 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/vic.c b/drivers/gpu/drm/tegra/vic.c
+index 55a8cc162e9d..aef8c16bfbee 100644
+--- a/drivers/gpu/drm/tegra/vic.c
++++ b/drivers/gpu/drm/tegra/vic.c
+@@ -26,6 +26,7 @@
+ struct vic_config {
+ 	const char *firmware;
+ 	unsigned int version;
++	bool supports_sid;
+ };
+ 
+ struct vic {
+@@ -105,6 +106,22 @@ static int vic_boot(struct vic *vic)
+ 	if (vic->booted)
+ 		return 0;
+ 
++	if (vic->config->supports_sid) {
++		struct iommu_fwspec *spec = dev_iommu_fwspec_get(vic->dev);
++		u32 value;
++
++		value = TRANSCFG_ATT(1, TRANSCFG_SID_FALCON) |
++			TRANSCFG_ATT(0, TRANSCFG_SID_HW);
++		vic_writel(vic, value, VIC_TFBIF_TRANSCFG);
++
++		if (spec->num_ids > 0) {
++			value = spec->ids[0] & 0xffff;
++
++			vic_writel(vic, value, VIC_THI_STREAMID0);
++			vic_writel(vic, value, VIC_THI_STREAMID1);
++		}
++	}
++
+ 	/* setup clockgating registers */
+ 	vic_writel(vic, CG_IDLE_CG_DLY_CNT(4) |
+ 			CG_IDLE_CG_EN |
+@@ -314,6 +331,7 @@ static const struct tegra_drm_client_ops vic_ops = {
+ static const struct vic_config vic_t124_config = {
+ 	.firmware = NVIDIA_TEGRA_124_VIC_FIRMWARE,
+ 	.version = 0x40,
++	.supports_sid = false,
+ };
+ 
+ #define NVIDIA_TEGRA_210_VIC_FIRMWARE "nvidia/tegra210/vic04_ucode.bin"
+@@ -321,6 +339,7 @@ static const struct vic_config vic_t124_config = {
+ static const struct vic_config vic_t210_config = {
+ 	.firmware = NVIDIA_TEGRA_210_VIC_FIRMWARE,
+ 	.version = 0x21,
++	.supports_sid = false,
+ };
+ 
+ #define NVIDIA_TEGRA_186_VIC_FIRMWARE "nvidia/tegra186/vic04_ucode.bin"
+@@ -328,6 +347,7 @@ static const struct vic_config vic_t210_config = {
+ static const struct vic_config vic_t186_config = {
+ 	.firmware = NVIDIA_TEGRA_186_VIC_FIRMWARE,
+ 	.version = 0x18,
++	.supports_sid = true,
+ };
+ 
+ #define NVIDIA_TEGRA_194_VIC_FIRMWARE "nvidia/tegra194/vic.bin"
+@@ -335,6 +355,7 @@ static const struct vic_config vic_t186_config = {
+ static const struct vic_config vic_t194_config = {
+ 	.firmware = NVIDIA_TEGRA_194_VIC_FIRMWARE,
+ 	.version = 0x19,
++	.supports_sid = true,
+ };
+ 
+ static const struct of_device_id vic_match[] = {
+diff --git a/drivers/gpu/drm/tegra/vic.h b/drivers/gpu/drm/tegra/vic.h
+index 21844817a7e1..017584340dd6 100644
+--- a/drivers/gpu/drm/tegra/vic.h
++++ b/drivers/gpu/drm/tegra/vic.h
+@@ -17,11 +17,20 @@
+ 
+ /* VIC registers */
+ 
++#define VIC_THI_STREAMID0	0x00000030
++#define VIC_THI_STREAMID1	0x00000034
++
+ #define NV_PVIC_MISC_PRI_VIC_CG			0x000016d0
+ #define CG_IDLE_CG_DLY_CNT(val)			((val & 0x3f) << 0)
+ #define CG_IDLE_CG_EN				(1 << 6)
+ #define CG_WAKEUP_DLY_CNT(val)			((val & 0xf) << 16)
+ 
++#define VIC_TFBIF_TRANSCFG	0x00002044
++#define  TRANSCFG_ATT(i, v)	(((v) & 0x3) << (i * 4))
++#define  TRANSCFG_SID_HW	0
++#define  TRANSCFG_SID_PHY	1
++#define  TRANSCFG_SID_FALCON	2
++
+ /* Firmware offsets */
+ 
+ #define VIC_UCODE_FCE_HEADER_OFFSET		(6*4)
+
+From patchwork Fri Feb  1 13:28:37 2019
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10792785
+Return-Path: <dri-devel-bounces@lists.freedesktop.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 0A23C746
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:17 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id ECB6430B13
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:16 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id E082F31947; Fri,  1 Feb 2019 13:29:16 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED autolearn=ham
+ version=3.3.1
+Received: from gabe.freedesktop.org (gabe.freedesktop.org [131.252.210.177])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id A9B6930B13
+	for <patchwork-dri-devel@patchwork.kernel.org>;
+ Fri,  1 Feb 2019 13:29:16 +0000 (UTC)
+Received: from gabe.freedesktop.org (localhost [127.0.0.1])
+	by gabe.freedesktop.org (Postfix) with ESMTP id D815B6EE62;
+	Fri,  1 Feb 2019 13:29:08 +0000 (UTC)
+X-Original-To: dri-devel@lists.freedesktop.org
+Delivered-To: dri-devel@lists.freedesktop.org
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com
+ [IPv6:2a00:1450:4864:20::441])
+ by gabe.freedesktop.org (Postfix) with ESMTPS id EF1D56EE52
+ for <dri-devel@lists.freedesktop.org>; Fri,  1 Feb 2019 13:29:05 +0000 (UTC)
+Received: by mail-wr1-x441.google.com with SMTP id z5so7057552wrt.11
+ for <dri-devel@lists.freedesktop.org>; Fri, 01 Feb 2019 05:29:05 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+ :references:mime-version:content-transfer-encoding;
+ bh=ZM0HyROmgt0mEFns87wNoAnJe0F5S/wmUofBRXVPuQQ=;
+ b=a4gUXa1Wkn/jHQB5h4B5vbz/rAlDEJR2KTqaES+92swtkTRPBSuNa+02o+n0Q2RMKs
+ QM9Q3KkebA/bg97bZw7tkPGE0adKQUDZq3zUkv77biHGT8CZR9bofalTQQkRiYVOG70s
+ UrLhLgLBNh1iyvsONHCq/mkYJsGKSSMXQsiwa/BL+A8TV8Opj6D/71YPVlmZbDi9atmd
+ NOiRR93EheVG1rjnhEyfWppxX5qDSLdYTcqCbcbIb/vI1o8TOiLajZowLc2NpafA+JuJ
+ 4hMRUBSCSeclnAKbHXje6LjZT8WZAUFjm48jpOufA9DD94fPTsw5JFSAVjrXEz8HICJZ
+ SQdw==
+X-Gm-Message-State: AHQUAuYQ/48kN7MykkHWNPbUHlu+nKgn8SyZsABiUuMxKWgVGp0IOeci
+ W6f9Y3RNwDWdDSCbgOYMeZU=
+X-Google-Smtp-Source: 
+ AHgI3Ib9Mcl8vngEJPnuik9KMo9OBXphaDMYiSL5YqkKRkVNghWOjmq9GJKZZY2o/R2XGvZaCX6SmA==
+X-Received: by 2002:a05:6000:1144:: with SMTP id
+ d4mr14831916wrx.136.1549027743633;
+ Fri, 01 Feb 2019 05:29:03 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id s16sm6321741wrt.77.2019.02.01.05.29.02
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 01 Feb 2019 05:29:03 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH v3 16/16] arm64: tegra: Enable SMMU for VIC on Tegra186
+Date: Fri,  1 Feb 2019 14:28:37 +0100
+Message-Id: <20190201132837.12327-17-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+In-Reply-To: <20190201132837.12327-1-thierry.reding@gmail.com>
+References: <20190201132837.12327-1-thierry.reding@gmail.com>
+MIME-Version: 1.0
+X-BeenThere: dri-devel@lists.freedesktop.org
+X-Mailman-Version: 2.1.23
+Precedence: list
+List-Id: Direct Rendering Infrastructure - Development
+ <dri-devel.lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Dmitry Osipenko <digetx@gmail.com>,
+ dri-devel@lists.freedesktop.org, Mikko Perttunen <mperttunen@nvidia.com>
+Content-Type: text/plain; charset="utf-8"
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+Enable address translation for VIC via the SMMU on Tegra186.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+---
+ arch/arm64/boot/dts/nvidia/tegra186.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/nvidia/tegra186.dtsi b/arch/arm64/boot/dts/nvidia/tegra186.dtsi
+index 66ea7e7c79f5..67b9f8ed3c9b 100644
+--- a/arch/arm64/boot/dts/nvidia/tegra186.dtsi
++++ b/arch/arm64/boot/dts/nvidia/tegra186.dtsi
+@@ -799,6 +799,7 @@
+ 			reset-names = "vic";
+ 
+ 			power-domains = <&bpmp TEGRA186_POWER_DOMAIN_VIC>;
++			iommus = <&smmu TEGRA186_SID_VIC>;
+ 		};
+ 
+ 		dsib: dsi@15400000 {

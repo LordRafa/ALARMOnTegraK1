@@ -1,0 +1,3 @@
+[submodule "PKGBUILDs/xorg-server-git"]
+	path = PKGBUILDs/xorg-server-git
+	url = https://aur.archlinux.org/xorg-server-git.git

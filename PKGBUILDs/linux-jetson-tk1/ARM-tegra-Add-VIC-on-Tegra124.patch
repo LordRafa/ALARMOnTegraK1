@@ -1,0 +1,153 @@
+From patchwork Fri Nov 23 12:04:03 2018
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: Thierry Reding <thierry.reding@gmail.com>
+X-Patchwork-Id: 10695709
+Return-Path: 
+ <linux-arm-kernel-bounces+patchwork-linux-arm=patchwork.kernel.org@lists.infradead.org>
+Received: from mail.wl.linuxfoundation.org (pdx-wl-mail.web.codeaurora.org
+ [172.30.200.125])
+	by pdx-korg-patchwork-2.web.codeaurora.org (Postfix) with ESMTP id 6EBA015A7
+	for <patchwork-linux-arm@patchwork.kernel.org>;
+ Fri, 23 Nov 2018 12:04:29 +0000 (UTC)
+Received: from mail.wl.linuxfoundation.org (localhost [127.0.0.1])
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTP id A36082AB39
+	for <patchwork-linux-arm@patchwork.kernel.org>;
+ Fri, 23 Nov 2018 12:04:28 +0000 (UTC)
+Received: by mail.wl.linuxfoundation.org (Postfix, from userid 486)
+	id 972FC2ABD1; Fri, 23 Nov 2018 12:04:28 +0000 (UTC)
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on
+	pdx-wl-mail.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No,
+ score=-5.2 required=2.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_SIGNED,DKIM_VALID,FREEMAIL_FROM,MAILING_LIST_MULTI,RCVD_IN_DNSWL_MED
+	autolearn=ham version=3.3.1
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [198.137.202.133])
+	(using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.wl.linuxfoundation.org (Postfix) with ESMTPS id 812DF2AB39
+	for <patchwork-linux-arm@patchwork.kernel.org>;
+ Fri, 23 Nov 2018 12:04:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=lists.infradead.org; s=bombadil.20170209; h=Sender:
+	Content-Transfer-Encoding:Content-Type:Cc:List-Subscribe:List-Help:List-Post:
+	List-Archive:List-Unsubscribe:List-Id:MIME-Version:Message-Id:Date:Subject:To
+	:From:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:
+	List-Owner; bh=7gpFDLKqM6ADXeVGl1XXPV0W2gFUsmIgDK18Kv5BpCM=; b=caehJed9NIv9SI
+	rxc5Da6Eo7HnkaZiwWLY576knRCpH+KDqnS9dvRWE2eAIXwnNK9BHY/uW5sTyU4FNefXtR1PiN8IE
+	D31nSMHk7MGIfg2T7ugw1hYz1EYpVRvW8QIZ3SJ8joqZdV5SqxWs1pSNiw6dSUMUgunE4unIXftKr
+	cdcdURaznFGYqsaAkC1tFwpJdho5+9q4dIqWXWtoa4TbIm/Z8vVherJqtXM9P/yw2djPX4JyFuM9P
+	vDsyPj1aU0FrUkKGBAJko7uukAkFbgot44sFKXVJTFqpB/41Qhqve2FwwcR57E7vFTdVs4RQ7Wmi5
+	/hZarSM90BWddKE5MUVw==;
+Received: from localhost ([127.0.0.1] helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtp (Exim 4.90_1 #2 (Red Hat Linux))
+	id 1gQAC4-0008Hx-Cu; Fri, 23 Nov 2018 12:04:20 +0000
+Received: from mail-ed1-x541.google.com ([2a00:1450:4864:20::541])
+ by bombadil.infradead.org with esmtps (Exim 4.90_1 #2 (Red Hat Linux))
+ id 1gQAC0-0008Gl-NZ
+ for linux-arm-kernel@lists.infradead.org; Fri, 23 Nov 2018 12:04:19 +0000
+Received: by mail-ed1-x541.google.com with SMTP id d3so10058513edx.7
+ for <linux-arm-kernel@lists.infradead.org>;
+ Fri, 23 Nov 2018 04:04:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20161025;
+ h=from:to:cc:subject:date:message-id:mime-version
+ :content-transfer-encoding;
+ bh=iUObj/f6arQEOSQeSRZSMQ7stD0DTNNLd3cb/CJVDik=;
+ b=ceiDKcY0Pg+ItEg7KiEeZ2u20/GTTLMH/+8WRM8V7X+Qhj0K0Qjm/+zYZ6/gqfXQno
+ MW7ZJWLTb3RkUb7cBynj+DLLdFebTBJ4nBn4w7oUl3/kkARy/6WArSG6CX0jxRujt7Em
+ HDnTTR0d09OVXL8euRTB5O1sSzoPhKsWm9SeK5mnwKdwSF2QaTXlal7cMsWKJ31+IU4j
+ 9WstaSS1Hn6LG7qcJ9Qdu3K+vDYZZXPZk1wH69nn9xioUgDp+tSl97u0cYppk15A0XJO
+ /fT7gsA67wO3op1eBgnGOSkV7AkD6hIuV9cKSuFmuZLNvqniq8E923drOv2XvElxsh5w
+ JCbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+ :content-transfer-encoding;
+ bh=iUObj/f6arQEOSQeSRZSMQ7stD0DTNNLd3cb/CJVDik=;
+ b=SQ1lk744slkmcJTs/DxhPsDU1jeC5sGgHmR6a2mponEmYGsl37SsmmfJidqiMFM4qs
+ elb1fy/FH73WXCUOt2EnvXecbK9epsyQVP/MjUTPdWX9QrDgOA46fyXuM8qqYgObEXX8
+ +FQ+0A9AtDOJyQLFzJgvY6W2vQsEUswMLObZg8sOfU0xd7gM8qHEdYX3aE8M/RT4q70X
+ 5nbCiT+cAanPQ8DOHfM8S1tOIzNu9bNNoy1JvJWUt2K2X907E/HCaHUJDynAwFIV0sY7
+ XRa/fdPnOwTAZtnMREodPbAFvOTk74qshu0sGWXF3QQcWQYqK74S+5I2cjrsdd+ptP3N
+ OPIg==
+X-Gm-Message-State: AA+aEWbOtpsats/lK5Fw8yKfKp+p0/b/XiUMKV10VXQKx8cxm5sMMxxn
+ /1OqpiRY+GQ3QremNIu9dmk=
+X-Google-Smtp-Source: 
+ AFSGD/XBziQ6vQ79RMnaIBfRe3ceGI5l+ig2cVCsfj/pXXoWCfq6jlG/KWlMzrwLL48eCTf+rbs1vg==
+X-Received: by 2002:aa7:d9d6:: with SMTP id
+ v22mr12684096eds.265.1542974644774;
+ Fri, 23 Nov 2018 04:04:04 -0800 (PST)
+Received: from localhost (pD9E51040.dip0.t-ipconnect.de. [217.229.16.64])
+ by smtp.gmail.com with ESMTPSA id s19-v6sm2665908ejz.2.2018.11.23.04.04.03
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Fri, 23 Nov 2018 04:04:04 -0800 (PST)
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>
+Subject: [PATCH] ARM: tegra: Add VIC on Tegra124
+Date: Fri, 23 Nov 2018 13:04:03 +0100
+Message-Id: <20181123120403.16244-1-thierry.reding@gmail.com>
+X-Mailer: git-send-email 2.19.1
+MIME-Version: 1.0
+X-CRM114-Version: 20100106-BlameMichelson ( TRE 0.8.0 (BSD) ) MR-646709E3 
+X-CRM114-CacheID: sfid-20181123_040416_768170_D720B00C 
+X-CRM114-Status: GOOD (  11.41  )
+X-BeenThere: linux-arm-kernel@lists.infradead.org
+X-Mailman-Version: 2.1.21
+Precedence: list
+List-Id: <linux-arm-kernel.lists.infradead.org>
+List-Unsubscribe: 
+ <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: 
+ <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Cc: linux-tegra@vger.kernel.org, Mikko Perttunen <mperttunen@nvidia.com>,
+ linux-arm-kernel@lists.infradead.org, Jon Hunter <jonathanh@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: 
+ linux-arm-kernel-bounces+patchwork-linux-arm=patchwork.kernel.org@lists.infradead.org
+X-Virus-Scanned: ClamAV using ClamSMTP
+
+From: Thierry Reding <treding@nvidia.com>
+
+The Video Image Compositor can be used to perform a variety of image
+operations. Add a device tree node for it, so that it can be exposed
+as a host1x channel to userspace.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Acked-by: Jon Hunter <jonathanh@nvidia.com>
+---
+ arch/arm/boot/dts/tegra124.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.dtsi
+index 183c5acafb22..b113e47b2b2a 100644
+--- a/arch/arm/boot/dts/tegra124.dtsi
++++ b/arch/arm/boot/dts/tegra124.dtsi
+@@ -140,6 +140,18 @@
+ 			status = "disabled";
+ 		};
+ 
++		vic@54340000 {
++			compatible = "nvidia,tegra124-vic";
++			reg = <0x0 0x54340000 0x0 0x00040000>;
++			interrupts = <GIC_SPI 72 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&tegra_car TEGRA124_CLK_VIC03>;
++			clock-names = "vic";
++			resets = <&tegra_car 178>;
++			reset-names = "vic";
++
++			iommus = <&mc TEGRA_SWGROUP_VIC>;
++		};
++
+ 		sor@54540000 {
+ 			compatible = "nvidia,tegra124-sor";
+ 			reg = <0x0 0x54540000 0x0 0x00040000>;

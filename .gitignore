@@ -1,13 +1,13 @@
-*.tar
-*.tar.*
-*.jar
-*.exe
-*.msi
-*.zip
-*.tgz
-*.log
-*.log.*
-*.sig
+PKGBUILDs/**/*.tar
+PKGBUILDs/**/*.tar.*
+PKGBUILDs/**/*.jar
+PKGBUILDs/**/*.exe
+PKGBUILDs/**/*.msi
+PKGBUILDs/**/*.zip
+PKGBUILDs/**/*.tgz
+PKGBUILDs/**/*.log
+PKGBUILDs/**/*.log.*
+PKGBUILDs/**/*.sig
 
-pkg/
-src/
+PKGBUILDs/**/pkg/
+PKGBUILDs/**/src/
