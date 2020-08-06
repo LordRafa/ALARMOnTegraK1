@@ -3,10 +3,10 @@
 
 buildarch=4
 
-pkgbase=linux-nyan
+pkgbase=linux-jetson-tk1
 _srcname=linux-5.1
 _kernelname=${pkgbase#linux}
-_desc="ARMv7 nyan"
+_desc="ARMv7 Jetson TK1"
 pkgver=5.1
 pkgrel=1
 arch=('armv7h')
@@ -15,39 +15,33 @@ license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'vboot-utils' 'dtc')
 options=('!strip')
 source=("http://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
-        'kernel.its'
-        'kernel.keyblock'
-        'kernel_data_key.vbprivk'
         'linux.preset'
         '99-linux.hook'
-        'v2-i2c-of-Try-to-find-an-I2C-adapter-matching-the-parent.patch'
-	'enable-CPU-freq.patch'
-	'nyan-big_defconfig'
-	'overclock-nyan.patch'
-	'enable-cec-for-nyan.patch'
-	'drm-tegra-Fix-IOVA-space-on-Tegra186-and-later.patch')
+        'jetson-tk1_defconfig'
+        'boot.scr'
+        'patches/v2-i2c-of-Try-to-find-an-I2C-adapter-matching-the-parent.patch'
+        'patches/enable-CPU-freq.patch'
+        'patches/overclock-nyan.patch'
+        'patches/enable-cec-for-nyan.patch'
+        'patches/drm-tegra-Fix-IOVA-space-on-Tegra186-and-later.patch')
 md5sums=('SKIP'
          'SKIP'
-         '61c5ff73c136ed07a7aadbf58db3d96a'
-         '584777ae88bce2c5659960151b64c7d8'
-         'fb034fe5f2e28a4cce30ae2d8cf6be3c'
-         '79fa396e3f9a09a85156d6d7c2d34b58'
          'SKIP'
-	 'SKIP'
-	 'SKIP'
-	 'SKIP'
-	 'SKIP'
-	 'SKIP')
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP')
 
 prepare() {
   cd "${srcdir}/${_srcname}"
 
-  #patch -p1 < ../v2-i2c-of-Try-to-find-an-I2C-adapter-matching-the-parent.patch
-  patch -p1 < ../enable-cec-for-nyan.patch
-  #patch -p1 < ../drm-tegra-Fix-IOVA-space-on-Tegra186-and-later.patch
-  patch arch/arm/boot/dts/tegra124-nyan.dtsi < ../enable-CPU-freq.patch
-  #patch drivers/clk/tegra/clk-tegra124-dfll-fcpu.c < ../overclock-nyan.patch
-  cp ../nyan-big_defconfig arch/arm/configs/nyan-big_defconfig
+  patch -p1 < ../patches/enable-cec-for-nyan.patch
+  patch arch/arm/boot/dts/tegra124-nyan.dtsi < ../patches/enable-CPU-freq.patch
+
+  cp ../jeton-tk1_defconfig arch/arm/configs/jeton-tk1_defconfig
   # add pkgrel to extraversion
   sed -ri "s|^(EXTRAVERSION =)(.*)|\1 \2-${pkgrel}|" Makefile
 
@@ -57,7 +51,7 @@ prepare() {
 
 build() {
   cd "${srcdir}/${_srcname}"
-  make defconfig nyan-big_defconfig
+  make defconfig jetson-tk1_defconfig
   # get kernel version
   make prepare
 
@@ -107,6 +101,7 @@ _package() {
   make INSTALL_MOD_PATH="${pkgdir}" modules_install
   make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
   cp arch/$KARCH/boot/zImage "${pkgdir}/boot/zImage"
+  cp "${srcdir}/boot.scr" "${pkgdir}/boot/boot.scr"
 
   # set correct depmod command for install
   sed \
@@ -124,7 +119,7 @@ _package() {
   # install pacman hook for initramfs regeneration
   sed "s|%PKGBASE%|${pkgbase}|g" "${srcdir}/99-linux.hook" |
     install -D -m644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/99-${pkgbase}.hook"
-
+    
   # remove build and source links
   rm -f "${pkgdir}"/lib/modules/${_kernver}/{source,build}
   # remove the firmware
@@ -257,33 +252,7 @@ _package-headers() {
   rm -rf "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/{alpha,arc,arm26,arm64,avr32,blackfin,c6x,cris,frv,h8300,hexagon,ia64,m32r,m68k,m68knommu,metag,mips,microblaze,mn10300,openrisc,parisc,powerpc,ppc,s390,score,sh,sh64,sparc,sparc64,tile,unicore32,um,v850,x86,xtensa}
 }
 
-_package-chromebook() {
-  pkgdesc="The Linux Kernel - ${_desc} - Chromebooks"
-  depends=('linux-nyan')
-  conflicts=('linux-armv7-rc-chromebook')
-  install=${pkgname}.install
-
-  cd "${srcdir}/${_srcname}"
-
-  cp ../kernel.its .
-  mkimage -D "-I dts -O dtb -p 2048" -f kernel.its vmlinux.uimg
-  dd if=/dev/zero of=bootloader.bin bs=512 count=1
-  echo 'console=tty0 init=/sbin/init root=PARTUUID=%U/PARTNROFF=1 rootwait rw noinitrd' > cmdline
-  vbutil_kernel \
-    --pack vmlinux.kpart \
-    --version 1 \
-    --vmlinuz vmlinux.uimg \
-    --arch arm \
-    --keyblock ../kernel.keyblock \
-    --signprivate ../kernel_data_key.vbprivk \
-    --config cmdline \
-    --bootloader bootloader.bin
-
-  mkdir -p "${pkgdir}/boot"
-  cp vmlinux.kpart "${pkgdir}/boot"
-}
-
-pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-chromebook")
+pkgname=("${pkgbase}" "${pkgbase}-headers")
 for _p in ${pkgname[@]}; do
   eval "package_${_p}() {
     _package${_p#${pkgbase}}
