@@ -6,6 +6,10 @@ MY_CHROOT_DIR=/tmp/arfs
 PROGRESS_PID=
 LOGFILE="${CWD}/archlinux-install.log"
 spin='-\|/'
+alarmontegrak1_version=v0.0.1
+xorg_server_git_version=1.20.0.r704.g5c20e4b83-1-armv7h
+kernel_version=5.1-1-armv7h
+board=jetson-tk1
 
 function progress () {
   arg=$1
@@ -115,14 +119,24 @@ start_progress "Installing X-server basics"
 
 cat > ${MY_CHROOT_DIR}/install-xbase.sh <<EOF
 
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-common-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xephyr-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xwayland-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-devel-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xnest-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-git-${xorg_server_git_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xvfb-git-${xorg_server_git_version}.pkg.tar.xz
+
+yes n | pacman -U --noconfirm xorg-server-*-git*
+
 pacman -Syy --needed --noconfirm \
         iw networkmanager network-manager-applet \
         lightdm lightdm-gtk-greeter \
         chromium \
-        xorg-server xorg-apps xf86-input-synaptics \
+        xorg-apps \
         xorg-twm xorg-xclock xterm xorg-xinit \
-        xorg-server-common xorg-server-xvfb \
-        xf86-input-evdev xf86-input-synaptics xf86-video-fbdev
+        xf86-input-evdev xf86-video-fbdev
+
 systemctl enable NetworkManager
 systemctl enable lightdm
 EOF
@@ -134,11 +148,11 @@ end_progress
 }
 
 
-function install_xfce4 () {
+function install_mate () {
 
-start_progress "Installing XFCE4"
+start_progress "Installing Mate"
 
-# add .xinitrc to /etc/skel that defaults to xfce4 session
+# add .xinitrc to /etc/skel that defaults to Mate session
 cat > ${MY_CHROOT_DIR}/etc/skel/.xinitrc << EOF
 #!/bin/sh
 #
@@ -153,24 +167,24 @@ if [ -d /etc/X11/xinit/xinitrc.d ]; then
   unset f
 fi
 
-# exec gnome-session
+exec mate-session
 # exec startkde
-exec startxfce4
+# exec startxfce4
 # ...or the Window Manager of your choice
 EOF
 
-cat > ${MY_CHROOT_DIR}/install-xfce4.sh << EOF
+cat > ${MY_CHROOT_DIR}/install-mate.sh << EOF
 
-pacman -Syy --needed --noconfirm  xfce4 xfce4-goodies
+pacman -Syy --needed --noconfirm  mate mate-extra
 # copy .xinitrc to already existing home of user 'alarm'
 cp /etc/skel/.xinitrc /home/alarm/.xinitrc
 cp /etc/skel/.xinitrc /home/alarm/.xprofile
-sed -i 's/exec startxfce4/# exec startxfce4/' /home/alarm/.xprofile
+sed -i 's/exec mate-session/# exec mate-session/' /home/alarm/.xprofile
 chown alarm:users /home/alarm/.xinitrc
 chown alarm:users /home/alarm/.xprofile
 EOF
 
-exec_in_chroot install-xfce4.sh
+exec_in_chroot install-mate.sh
 
 end_progress
 
@@ -182,10 +196,10 @@ function install_kernel () {
 start_progress "Installing kernel"
 
 cat > ${MY_CHROOT_DIR}/install-kernel.sh << EOF
-wget https://github.com/lordrafa/PKGBUILDs/releases/download/v5.1.1/linux-nyan-5.1-1-armv7h.pkg.tar.xz
-wget https://github.com/lordrafa/PKGBUILDs/releases/download/v5.1.1/linux-nyan-headers-5.1-1-armv7h.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/linux-${board}-${kernel_version}.pkg.tar.xz
+wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/linux-${board}-headers-${kernel_version}.pkg.tar.xz
 pacman -R --noconfirm linux-armv7
-yes n | pacman -U --noconfirm linux-nyan-*
+yes n | pacman -U --noconfirm linux-${board}-*
 
 EOF
 
@@ -244,6 +258,8 @@ if [ ! -d /tmp/arfs ]
 then
   mkdir /tmp/arfs
 fi
+
+mkfs.ext4 ${target_rootfs}
 mount -t ext4 ${target_rootfs} /tmp/arfs
 
 tar_file="http://archlinuxarm.org/os/ArchLinuxARM-${archlinux_arch}-${archlinux_version}.tar.gz"
@@ -262,7 +278,7 @@ install_dev_tools
 
 install_xbase
 
-install_xfce4
+install_mate
 
 install_sound
 
