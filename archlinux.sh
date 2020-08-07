@@ -127,7 +127,7 @@ wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegra
 wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-git-${xorg_server_git_version}.pkg.tar.xz
 wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xvfb-git-${xorg_server_git_version}.pkg.tar.xz
 
-yes n | pacman -U --noconfirm xorg-server-*-git*
+yes n | pacman -U --noconfirm xorg-server*git*
 
 pacman -Syy --needed --noconfirm \
         iw networkmanager network-manager-applet \
