@@ -226,6 +226,20 @@ end_progress
 }
 
 
+function install_misc_conf () {
+
+start_progress "Performing some misc configuration"
+
+cat > ${MY_CHROOT_DIR}/misc-conf.sh <<EOF
+echo AutoEnable=true >> /etc/bluetooth/main.conf
+EOF
+
+exec_in_chroot misc-conf.sh
+
+end_progress
+
+}
+
 function install_sound () {
 
 start_progress "Installing sound (alsa/pulseaudio)"
@@ -285,6 +299,8 @@ install_sound
 install_kernel
 
 install_misc_utils
+
+install_misc_conf
 
 echo -e "
 
