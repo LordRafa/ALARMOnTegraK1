@@ -1,3 +1,11 @@
+Author: Rafael Waldo Delgado Doblas <lord.rafa@gmail.com>
+
+This disables the mini_pcie WIFI hardware block pin at boot.
+
+It was required to port Anton Vorontsov <avorontsov@ru.mvista.com> original
+work to configure GPIO from DTB files. The original code is avaiable at:
+https://android.googlesource.com/kernel/tegra/+/d543254f2888fef055e84715238009fa2500f501/drivers/gpio/gpiolib-of.c
+
 diff -u a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
 --- a/drivers/gpio/gpio-tegra.c
 +++ b/drivers/gpio/gpio-tegra.c
