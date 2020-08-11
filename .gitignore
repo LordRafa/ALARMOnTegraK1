@@ -11,3 +11,5 @@ PKGBUILDs/**/*.sig
 
 PKGBUILDs/**/pkg/
 PKGBUILDs/**/src/
+
+**/archlinux-install.log

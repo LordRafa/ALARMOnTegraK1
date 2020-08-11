@@ -1,42 +1,12 @@
 set -e
 
-CWD=`pwd`
+# Downloads common.sh if script was run out of the git tree eg: Following readme instructions.
+common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/common.sh"
+ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
+. ./common.sh
+
 target_rootfs=/dev/mmcblk0p1
 MY_CHROOT_DIR=/tmp/arfs
-PROGRESS_PID=
-LOGFILE="${CWD}/archlinux-install.log"
-spin='-\|/'
-alarmontegrak1_version=v0.0.2
-xorg_server_git_version=1.20.0.r704.g5c20e4b83-1-armv7h
-kernel_version=5.1-1-armv7h
-board=jetson-tk1
-
-function progress () {
-  arg=$1
-  echo -n "$arg   "
-  while true
-  do
-    i=$(( (i+1) %4 ))
-    printf "\r$arg   ${spin:$i:1}"
-    sleep .1
-  done
-}
-
-function start_progress () {
-  # Start it in the background
-  progress "$1" &
-  # Save progress() PID
-  PROGRESS_PID=$!
-  disown
-}
-
-function end_progress () {
-
-# Kill progress
-kill ${PROGRESS_PID} >/dev/null  2>&1
-echo -n " ...done."
-echo
-}
 
 #
 # Note, this function removes the script after execution
@@ -66,7 +36,7 @@ function unset_chroot () {
 
   if [ "x${PROGRESS_PID}" != "x" ]
   then
-    end_progress
+    end_progress "done"
   fi
 
   umount ${MY_CHROOT_DIR}/proc
@@ -88,19 +58,19 @@ function copy_chros_files () {
   echo alarm > ${MY_CHROOT_DIR}/etc/hostname
   echo -e "\n127.0.1.1\tlocalhost.localdomain\tlocalhost\talarm" >> ${MY_CHROOT_DIR}/etc/hosts
 
-  end_progress
+  end_progress "done"
 }
 
 function install_dev_tools () {
 
-start_progress "Installing development base packages"
+  start_progress "Installing development base packages"
 
-#
-# Add some development tools and put the alarm user into the
-# wheel group. Furthermore, grant ALL privileges via sudo to users
-# that belong to the wheel group
-#
-cat > ${MY_CHROOT_DIR}/install-develbase.sh << EOF
+  #
+  # Add some development tools and put the alarm user into the
+  # wheel group. Furthermore, grant ALL privileges via sudo to users
+  # that belong to the wheel group
+  #
+  cat > ${MY_CHROOT_DIR}/install-develbase.sh << EOF
 pacman-key --init
 pacman-key --populate archlinuxarm
 pacman -Syyu --needed --noconfirm sudo wget dialog base-devel devtools vim rsync git vboot-utils
@@ -108,24 +78,23 @@ usermod -aG wheel alarm
 sed -i 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
 EOF
 
-exec_in_chroot install-develbase.sh
+  exec_in_chroot install-develbase.sh
 
-end_progress
+  end_progress "done"
 }
 
 function install_xbase () {
 
-start_progress "Installing X-server basics"
+  start_progress "Installing X-server basics"
 
-cat > ${MY_CHROOT_DIR}/install-xbase.sh <<EOF
-
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-common-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xephyr-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xwayland-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-devel-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xnest-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-git-${xorg_server_git_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/xorg-server-xvfb-git-${xorg_server_git_version}.pkg.tar.xz
+  cat > ${MY_CHROOT_DIR}/install-xbase.sh <<EOF
+wget ${xorg_server_common_git_file}
+wget ${xorg_server_xephyr_git_file} 
+wget ${xorg_server_xwayland_git_file} 
+wget ${xorg_server_devel_git_file} 
+wget ${xorg_server_xnest_git_file} 
+wget ${xorg_server_git_file} 
+wget ${xorg_server_xvfb_git_file}
 
 yes n | pacman -U --noconfirm xorg-server*git*
 
@@ -139,21 +108,22 @@ pacman -Syy --needed --noconfirm \
 
 systemctl enable NetworkManager
 systemctl enable lightdm
+rm xorg-server*git*
 EOF
 
-exec_in_chroot install-xbase.sh
+  exec_in_chroot install-xbase.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 
 function install_mate () {
 
-start_progress "Installing Mate"
+  start_progress "Installing Mate"
 
-# add .xinitrc to /etc/skel that defaults to Mate session
-cat > ${MY_CHROOT_DIR}/etc/skel/.xinitrc << EOF
+  # add .xinitrc to /etc/skel that defaults to Mate session
+  cat > ${MY_CHROOT_DIR}/etc/skel/.xinitrc << EOF
 #!/bin/sh
 #
 # ~/.xinitrc
@@ -173,8 +143,7 @@ exec mate-session
 # ...or the Window Manager of your choice
 EOF
 
-cat > ${MY_CHROOT_DIR}/install-mate.sh << EOF
-
+  cat > ${MY_CHROOT_DIR}/install-mate.sh << EOF
 pacman -Syy --needed --noconfirm  mate mate-extra
 # copy .xinitrc to already existing home of user 'alarm'
 cp /etc/skel/.xinitrc /home/alarm/.xinitrc
@@ -184,122 +153,102 @@ chown alarm:users /home/alarm/.xinitrc
 chown alarm:users /home/alarm/.xprofile
 EOF
 
-exec_in_chroot install-mate.sh
+  exec_in_chroot install-mate.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 
 function install_kernel () {
 
-start_progress "Installing kernel"
+  start_progress "Installing kernel"
 
-cat > ${MY_CHROOT_DIR}/install-kernel.sh << EOF
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/linux-${board}-${kernel_version}.pkg.tar.xz
-wget https://github.com/LordRafa/ALARMOnTegraK1/releases/download/${alarmontegrak1_version}/linux-${board}-headers-${kernel_version}.pkg.tar.xz
+  cat > ${MY_CHROOT_DIR}/install-kernel.sh << EOF
+wget ${kernel_file}
+wget ${headers_file}
 pacman -R --noconfirm linux-armv7
 yes n | pacman -U --noconfirm linux-${board}-*
-
+rm linux-${board}-*
 EOF
 
-exec_in_chroot install-kernel.sh
+  exec_in_chroot install-kernel.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 
 function install_misc_utils () {
 
-start_progress "Installing some more utilities"
+  start_progress "Installing some more utilities"
 
-cat > ${MY_CHROOT_DIR}/install-utils.sh <<EOF
+  cat > ${MY_CHROOT_DIR}/install-utils.sh <<EOF
 pacman -Syy --needed --noconfirm  sshfs screen file-roller bluez bluez-utils blueman
 systemctl enable bluetooth.service
 EOF
 
-exec_in_chroot install-utils.sh
+  exec_in_chroot install-utils.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 
 function install_misc_conf () {
 
-start_progress "Performing some misc configuration"
+  start_progress "Performing some additional configuration."
 
-cat > ${MY_CHROOT_DIR}/misc-conf.sh <<EOF
+  cat > ${MY_CHROOT_DIR}/misc-conf.sh <<EOF
 echo AutoEnable=true >> /etc/bluetooth/main.conf
 EOF
 
-exec_in_chroot misc-conf.sh
+  exec_in_chroot misc-conf.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 function install_sound () {
 
-start_progress "Installing sound (alsa/pulseaudio)"
+  start_progress "Installing sound (alsa/pulseaudio)"
 
-cat > ${MY_CHROOT_DIR}/install-sound.sh <<EOF
-
+  cat > ${MY_CHROOT_DIR}/install-sound.sh <<EOF
 pacman -Syy --needed --noconfirm \
         alsa-lib alsa-utils alsa-tools alsa-oss alsa-firmware alsa-plugins \
         pulseaudio pulseaudio-alsa
 EOF
 
-exec_in_chroot install-sound.sh
+  exec_in_chroot install-sound.sh
 
-end_progress
+  end_progress "done"
 
 }
 
 echo "" > $LOGFILE
 
-archlinux_arch="armv7"
-archlinux_version="latest"
-
-echo -e "Installing ArchLinuxARM ${archlinux_version}\n"
-
-echo -e "Installing ArchLinuxARM Arch: ${archlinux_arch}\n"
-
+echo -e "Installing ArchLinuxARM ${archlinux_version}-${archlinux_arch}\n"
+echo -e "Warning: This will destroy any data on ${target_rootfs}\n"
 read -p "Press [Enter] to continue..."
 
-if [ ! -d /tmp/arfs ]
-then
-  mkdir /tmp/arfs
-fi
-
-mkfs.ext4 ${target_rootfs}
-mount -t ext4 ${target_rootfs} /tmp/arfs
-
-tar_file="http://archlinuxarm.org/os/ArchLinuxARM-${archlinux_arch}-${archlinux_version}.tar.gz"
+start_progress "Formating and mount target rootfs"
+ls /tmp/arfs &> /dev/null || mkdir /tmp/arfs >> ${LOGFILE} 2>&1
+mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
+mount -t ext4 ${target_rootfs} /tmp/arfs >> ${LOGFILE} 2>&1
+end_progress "done"
 
 start_progress "Downloading and extracting ArchLinuxARM rootfs"
-
-curl -s -L --output - $tar_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
-
-end_progress
+curl -s -L --output - $rootfs_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+end_progress "done"
 
 setup_chroot
-
 copy_chros_files
-
 install_dev_tools
-
 install_xbase
-
 install_mate
-
 install_sound
-
 install_kernel
-
 install_misc_utils
-
 install_misc_conf
 
 echo -e "
@@ -322,3 +271,4 @@ We're now ready to start ArchLinuxARM!
 read -p "Press [Enter] to reboot..."
 
 reboot
+
