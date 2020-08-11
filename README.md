@@ -24,6 +24,7 @@ I implemented the following changes:
 * Replaced XCFE4 by Mate.
 * Included xorg-server-git package required to start X.
 * Formarts and installs ALArm directly into /dev/mmcblk0p1.
+* Installs the required boot.scr in /boot.
 
 # Usage
 
