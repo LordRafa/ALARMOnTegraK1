@@ -2,106 +2,21 @@ Author: Rafael Waldo Delgado Doblas <lord.rafa@gmail.com>
 
 This disables the mini_pcie WIFI hardware block pin at boot.
 
-It was required to port Anton Vorontsov <avorontsov@ru.mvista.com> original
-work to configure GPIO from DTB files. The original code is avaiable at:
-https://android.googlesource.com/kernel/tegra/+/d543254f2888fef055e84715238009fa2500f501/drivers/gpio/gpiolib-of.c
-
-diff -u a/drivers/gpio/gpio-tegra.c b/drivers/gpio/gpio-tegra.c
---- a/drivers/gpio/gpio-tegra.c
-+++ b/drivers/gpio/gpio-tegra.c
-@@ -566,6 +566,66 @@
- 	SET_SYSTEM_SLEEP_PM_OPS(tegra_gpio_suspend, tegra_gpio_resume)
- };
- 
-+void of_gpiochip_init(struct gpio_chip *chip)
-+{
-+	struct device_node *np = chip->of_node;
-+	struct device_node *np_config;
-+	int state;
-+	char *propname;
-+	const char *statename;
-+	const __be32 *gpio_nr;
-+	int ngpios;
-+	unsigned int plen;
-+	int offset;
-+	int i;
-+
-+	if (!chip->of_node)
-+		return;
-+
-+	/* For each defined state ID */
-+	for (state = 0; ; state++) {
-+		/* Retrieve the gpio-init-* property */
-+		propname = kasprintf(GFP_KERNEL, "gpio-init-%d", state);
-+		np_config  = of_parse_phandle(np, propname, 0);
-+		kfree(propname);
-+		if (!np_config)
-+			break;
-+
-+		/* Determine whether gpio-init-names property names the state */
-+		of_property_read_string_index(np, "gpio-init-names",
-+						    state, &statename);
-+
-+		gpio_nr = of_get_property(np_config, "gpio-input", &plen);
-+		if (gpio_nr) {
-+			ngpios = plen/sizeof(u32);
-+			for (i = 0; i < ngpios; ++i) {
-+				offset = be32_to_cpup(gpio_nr + i);
-+				chip->direction_input(chip, offset);
-+			}
-+		}
-+
-+		gpio_nr = of_get_property(np_config, "gpio-output-low", &plen);
-+		if (gpio_nr) {
-+			ngpios = plen/sizeof(u32);
-+			for (i = 0; i < ngpios; ++i) {
-+				offset = be32_to_cpup(gpio_nr + i);
-+				chip->direction_output(chip, offset, 0);
-+			}
-+		}
-+
-+		gpio_nr = of_get_property(np_config, "gpio-output-high", &plen);
-+		if (gpio_nr) {
-+			ngpios = plen/sizeof(u32);
-+			for (i = 0; i < ngpios; ++i) {
-+				offset = be32_to_cpup(gpio_nr + i);
-+				chip->direction_output(chip, offset, 1);
-+			}
-+		}
-+
-+		of_node_put(np_config);
-+	}
-+}
-+
- static int tegra_gpio_probe(struct platform_device *pdev)
- {
- 	struct tegra_gpio_info *tgi;
-@@ -686,6 +746,8 @@
- 		}
- 	}
- 
-+    of_gpiochip_init(&tgi->gc);
-+
- 	tegra_gpio_debuginit(tgi);
- 
- 	return 0;
-
 diff -u a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.new.dtsi
 --- a/arch/arm/boot/dts/tegra124.dtsi
 +++ b/arch/arm/boot/dts/tegra124.new.dtsi
-@@ -281,6 +281,14 @@
- 		/*
- 		gpio-ranges = <&pinmux 0 0 251>;
- 		*/
-+		gpio-init-names = "default";
-+		gpio-init-0 = <&gpio_default>;
-+
-+		gpio_default: default {
-+			gpio-input = <>;
-+			gpio-output-low = <>;
-+			gpio-output-high = <TEGRA_GPIO(X, 7)>;
-+		};
+@@ -2089,3 +2089,14 @@
+ 		};
  	};
- 
- 	apbdma: dma@60020000 {
- 
+ };
++
++&gpio {
++	/* Jetson TK1 GPIO_X7_AUD controls PCIE W_DISABLE */
++	pex-w-disable {
++		gpio-hog;
++		gpios = <TEGRA_GPIO(X, 7) GPIO_ACTIVE_LOW>;
++		output-high;
++		line-name = "PEX_W_DISABLE";
++	};
++};
++
