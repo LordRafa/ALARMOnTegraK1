@@ -19,8 +19,10 @@ source=("http://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
         '99-linux.hook'
         'jetson-tk1_defconfig'
         'boot.scr'
+	'linux-jetson-tk1.install'
         'jetson-enable-wifi.patch')
 md5sums=('SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
