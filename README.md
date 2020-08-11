@@ -4,8 +4,7 @@
 
 The archlinux.sh script allows one to install ArchLinuxARM
 (http://www.archlinuxarm.org) on a Jetson TK1.
-Instead of just a base system, the script
-installs an entire Mate system.
+Instead of just a base system, the script installs an entire Mate system.
 
 The script itself is derived from the work Clifford Wolf's chrubuntu
 script, which can be found here:
@@ -28,6 +27,16 @@ I implemented the following changes:
 
 # Usage
 
-From an up and runing Tegra4Linux on a Jetson TK1 run:
+From a PC use the create_installation_sd.sh script to configure a SD card as an installation medium.
+```bash
+curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/create_installation_sd.sh -o create_installation_sd.sh
+sh create_installation_sd.sh /dev/sdX
+```
+
+Using the SD card boot the Jetson TK1, login as root (root:root) and run:
+```bash
+dhcpcd
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/archlinux.sh -o archlinux.sh
-sudo sh archlinux.sh
+sh archlinux.sh
+```
+Once the script finish the Jeton TK1 will reboot remove the SD and it will boot on the new installation.
