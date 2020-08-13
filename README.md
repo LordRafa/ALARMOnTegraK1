@@ -35,7 +35,6 @@ sh create_installation_sd.sh /dev/sdX
 
 Using the SD card boot the Jetson TK1, login as root (root:root) and run:
 ```bash
-dhcpcd
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/archlinux.sh -o archlinux.sh
 sh archlinux.sh
 ```
