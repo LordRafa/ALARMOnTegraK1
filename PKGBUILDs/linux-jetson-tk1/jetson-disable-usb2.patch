@@ -1,0 +1,17 @@
+# Disabling usb2-0 because it crashes tegra-xhci
+
+# Found at v5.8
+
+--- a/arch/arm/boot/dts/tegra124-jetson-tk1.dts
++++ b/arch/arm/boot/dts/tegra124-jetson-tk1.dts
+@@ -1733,7 +1733,7 @@
+ 				lanes {
+ 					usb2-0 {
+ 						nvidia,function = "snps";
+-						status = "okay";
++						status = "disabled";
+ 					};
+ 
+ 					usb2-1 {
+
+

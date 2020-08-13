@@ -1,0 +1,91 @@
+Return-Path: <linux-tegra-owner@vger.kernel.org>
+X-Original-To: incoming@patchwork.ozlabs.org
+Delivered-To: patchwork-incoming@bilbo.ozlabs.org
+Authentication-Results: ozlabs.org;
+ spf=pass (sender SPF authorized) smtp.mailfrom=vger.kernel.org
+ (client-ip=23.128.96.18; helo=vger.kernel.org;
+ envelope-from=linux-tegra-owner@vger.kernel.org; receiver=<UNKNOWN>)
+Authentication-Results: ozlabs.org;
+ dmarc=pass (p=none dis=none) header.from=nvidia.com
+Authentication-Results: ozlabs.org;
+	dkim=pass (2048-bit key;
+ unprotected) header.d=nvidia.com header.i=@nvidia.com header.a=rsa-sha256
+ header.s=n1 header.b=rGwmMCWy;
+	dkim-atps=neutral
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by ozlabs.org (Postfix) with ESMTP id 4BQnWp4Czlz9sTM
+	for <incoming@patchwork.ozlabs.org>; Tue, 11 Aug 2020 19:26:14 +1000 (AEST)
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1728368AbgHKJ0N (ORCPT <rfc822;incoming@patchwork.ozlabs.org>);
+        Tue, 11 Aug 2020 05:26:13 -0400
+Received: from hqnvemgate26.nvidia.com ([216.228.121.65]:7187 "EHLO
+        hqnvemgate26.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728224AbgHKJ0N (ORCPT
+        <rfc822;linux-tegra@vger.kernel.org>);
+        Tue, 11 Aug 2020 05:26:13 -0400
+Received: from hqpgpgate101.nvidia.com (Not Verified[216.228.121.13]) by
+ hqnvemgate26.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
+        id <B5f3264270001>; Tue, 11 Aug 2020 02:25:59 -0700
+Received: from hqmail.nvidia.com ([172.20.161.6])
+  by hqpgpgate101.nvidia.com (PGP Universal service);
+  Tue, 11 Aug 2020 02:26:13 -0700
+X-PGP-Universal: processed;
+        by hqpgpgate101.nvidia.com on Tue, 11 Aug 2020 02:26:13 -0700
+Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Tue, 11 Aug
+ 2020 09:26:10 +0000
+Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL111.nvidia.com
+ (172.20.187.18) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
+ Transport; Tue, 11 Aug 2020 09:26:10 +0000
+Received: from jckuo-lt.nvidia.com (Not Verified[10.19.100.79]) by
+ hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
+        id <B5f3264310000>; Tue, 11 Aug 2020 02:26:10 -0700
+From: JC Kuo <jckuo@nvidia.com>
+To: <mathias.nyman@linux.intel.com>, <gregkh@linuxfoundation.org>,
+        <thierry.reding@gmail.com>, <jonathanh@nvidia.com>
+CC: <linux-tegra@vger.kernel.org>, <linux-usb@vger.kernel.org>,
+        <nkristam@nvidia.com>, JC Kuo <jckuo@nvidia.com>
+Subject: [PATCH] usb: host: xhci-tegra: fix tegra_xusb_get_phy()
+Date: Tue, 11 Aug 2020 17:25:53 +0800
+Message-ID: <20200811092553.657762-1-jckuo@nvidia.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+X-NVConfidentiality: public
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+        t=1597137959; bh=QurZ0Svx7BK8ZwJbFr6/J42LiKxAQgEqxPXv6fw9mFw=;
+        h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
+         MIME-Version:X-NVConfidentiality:Content-Transfer-Encoding:
+         Content-Type;
+        b=rGwmMCWyT5ht0A8cPL3d6qxQ1K2voQbvbUxtUNQuaiuO1dAuKt30ZcCnZoemPF316
+         whaBRPigGX2PI7128Ji6pv73G+2IS649EX+aMCCCC1cHocfI4J/dI9X00ab2yxVRlu
+         LFtoD1A5ZA+ngg3CPRjcWuJgQPcKRxkMZ3OIFfgl8wFfAY4SW+GEazEkODt+u5jfac
+         d0M/GUdsCqVBMLh98c/i9+m9eA6QCy05bisON/wMfKV9rvtASJABl8GFmL832AUf8H
+         NZ3e/NI+uFHLIfEJS/l5khel9Ebg6Rr9ddi8uWk7H4elAo+L4Ju774WxmVO4Wy/qmh
+         +Rayn9TB1z58A==
+Sender: linux-tegra-owner@vger.kernel.org
+Precedence: bulk
+List-ID: <linux-tegra.vger.kernel.org>
+X-Mailing-List: linux-tegra@vger.kernel.org
+
+tegra_xusb_get_phy() should take input argument "name".
+
+Signed-off-by: JC Kuo <jckuo@nvidia.com>
+---
+ drivers/usb/host/xhci-tegra.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-tegra.c b/drivers/usb/host/xhci-tegra.c
+index 014d79334f50..455b5ce67c7a 100644
+--- a/drivers/usb/host/xhci-tegra.c
++++ b/drivers/usb/host/xhci-tegra.c
+@@ -1136,7 +1136,7 @@  static struct phy *tegra_xusb_get_phy(struct tegra_xusb *tegra, char *name,
+ 	unsigned int i, phy_count = 0;
+ 
+ 	for (i = 0; i < tegra->soc->num_types; i++) {
+-		if (!strncmp(tegra->soc->phy_types[i].name, "usb2",
++		if (!strncmp(tegra->soc->phy_types[i].name, name,
+ 							    strlen(name)))
+ 			return tegra->phys[phy_count+port];
+

@@ -4,10 +4,10 @@
 buildarch=4
 
 pkgbase=linux-jetson-tk1
-_srcname=linux-5.1
+_srcname=linux-5.8.1
 _kernelname=${pkgbase#linux}
 _desc="ARMv7 Jetson TK1"
-pkgver=5.1
+pkgver=5.8.1
 pkgrel=2
 arch=('armv7h')
 url="http://www.kernel.org/"
@@ -20,8 +20,16 @@ source=("http://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
         'jetson-tk1_defconfig'
         'boot.scr'
 	'linux-jetson-tk1.install'
-        'jetson-enable-wifi.patch')
+        'jetson-enable-wifi.patch'
+	'jetson-disable-usb2.patch'
+	'usb-host-xhci-tegra-fix-tegra_xusb_get_phy.patch'
+	'usb-host-xhci-tegra-otg-usb2-usb3-port-init.patch'
+	'usb-host-xhci-tegra-remove-a-duplicated-entry.patch')
 md5sums=('SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -33,6 +41,10 @@ prepare() {
   cd "${srcdir}/${_srcname}"
 
   patch -p1 < ../jetson-enable-wifi.patch
+  patch -p1 < ../jetson-disable-usb2.patch
+  patch -p1 < ../usb-host-xhci-tegra-fix-tegra_xusb_get_phy.patch
+  patch -p1 < ../usb-host-xhci-tegra-otg-usb2-usb3-port-init.patch
+  patch -p1 < ../usb-host-xhci-tegra-remove-a-duplicated-entry.patch
 
   cp ../jetson-tk1_defconfig arch/arm/configs/jetson-tk1_defconfig
   # add pkgrel to extraversion
