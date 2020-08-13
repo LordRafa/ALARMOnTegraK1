@@ -1,6 +1,6 @@
 # mkinitcpio preset file for the linux-armv7 package
 
-ALL_config="/etc/mkinitcpio.conf"
+ALL_config="/etc/mkinitcpio.d/mkinitcpio_tegra124.conf"
 ALL_kver="PLACEHOLDER"
 
 PRESETS=('default')
