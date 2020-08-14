@@ -27,6 +27,9 @@ I implemented the following changes:
 
 # Usage
 
+Follow this guide to install the latest uBoot on the Jetson TK1
+https://wiki.debian.org/InstallingDebianOn/NVIDIA/Jetson-TK1
+
 From a PC use the create_installation_sd.sh script to configure a SD card as an installation medium.
 ```bash
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/create_installation_sd.sh -o create_installation_sd.sh
@@ -36,6 +39,9 @@ sh create_installation_sd.sh /dev/sdX
 Using the SD card boot the Jetson TK1, login as root (root:root) and run:
 ```bash
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/archlinux.sh -o archlinux.sh
-sh archlinux.sh
+sh archlinux.sh INSTALLATION_TARGET
+# INSTALLATION_TARGET must be replaced by "emmc", "sd" or "sda", which correspond respectively to the internal eMMC, the SD Card or any SATA connected.
 ```
-Once the script finish the Jeton TK1 will reboot remove the SD and it will boot on the new installation.
+
+
+Once the script finish the Jetson TK1 will reboot remove the SD and it will boot on the new installation.
