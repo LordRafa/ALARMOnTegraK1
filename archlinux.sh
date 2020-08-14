@@ -1,11 +1,68 @@
+#!/bin/bash
+
 set -e
+
+target_rootfs=""
+
+emmc="/dev/mmcblk0p1"
+sd="/dev/mmcblk1p1"
+sda="/dev/sda1"
+
+case $1 in
+
+ "emmc")
+    target_rootfs=${emmc}
+    ;;
+
+ "sd")
+    target_rootfs=${sd}
+    ;;
+
+ "sda")
+    target_rootfs=${sda}
+    ;;
+
+  *)
+    echo -e "Usage: archlinux.sh [emmc|sd|sda]\n"\
+         "\temmc -> Installs Arch Linux ARM on the EMMC\n"\
+         "\tsd   -> Installs Arch Linux ARM on the SD Card\n"\
+         "\tsda  -> Installs Arch Linux ARM on the SATA Device\n"
+  	exit 1
+  	;;
+
+esac
+
+
+function format_target () {
+
+  start_progress "Formating and mount target rootfs"
+
+  ls /tmp/arfs &> /dev/null || mkdir /tmp/arfs >> ${LOGFILE} 2>&1
+  mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
+  mount -t ext4 ${target_rootfs} /tmp/arfs >> ${LOGFILE} 2>&1
+  if [[ $1 == "sda" ]]; then
+    mkfs.ext4 ${emmc} >> ${LOGFILE} 2>&1
+    mkdir /tmp/arfs/boot >> ${LOGFILE} 2>&1
+    mount -t ext4 ${emmc} /tmp/arfs/boot >> ${LOGFILE} 2>&1
+  fi
+
+  end_progress "done"
+
+}
+
+function install_base () {
+
+  start_progress "Downloading and extracting ArchLinuxARM rootfs"
+  curl -s -L --output - $rootfs_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+  end_progress "done"
+
+}
 
 # Downloads common.sh if script was run out of the git tree eg: Following readme instructions.
 common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/common.sh"
 ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
 . ./common.sh
 
-target_rootfs=/dev/mmcblk0p1
 MY_CHROOT_DIR=/tmp/arfs
 
 #
@@ -51,7 +108,7 @@ trap unset_chroot EXIT
 function copy_chros_files () {
 
   start_progress "Copying additional files to ArchLinuxARM rootdir"
-
+  dhcpcd
   mkdir -p ${MY_CHROOT_DIR}/run/resolvconf
   cp /etc/resolv.conf ${MY_CHROOT_DIR}/run/resolvconf/
   ln -s -f /run/resolvconf/resolv.conf ${MY_CHROOT_DIR}/etc/resolv.conf
@@ -184,7 +241,7 @@ function install_misc_utils () {
   start_progress "Installing some more utilities"
 
   cat > ${MY_CHROOT_DIR}/install-utils.sh <<EOF
-pacman -Syy --needed --noconfirm  sshfs screen file-roller bluez bluez-utils blueman
+pacman -Syy --needed --noconfirm  sshfs screen file-roller bluez bluez-utils blueman uboot-tools
 systemctl enable bluetooth.service
 EOF
 
@@ -194,6 +251,22 @@ EOF
 
 }
 
+function install_uboot_conf () {
+
+  start_progress "Performing configure U-BOOT."
+
+  cat > ${MY_CHROOT_DIR}/misc-conf.sh <<EOF
+pacman -Syy --needed --noconfirm  uboot-tools
+echo 0 > /sys/block/mmcblk0boot1/force_ro
+echo "/dev/mmcblk0boot1       0x3fe000        0x2000" >> /etc/fw_env.config
+fw_setenv bootargs "console=ttyS0,115200n8 console=tty1 root=${target_rootfs} rw rootwait"
+EOF
+
+  exec_in_chroot misc-conf.sh
+
+  end_progress "done"
+
+}
 
 function install_misc_conf () {
 
@@ -208,6 +281,8 @@ EOF
   end_progress "done"
 
 }
+
+
 
 function install_sound () {
 
@@ -231,16 +306,8 @@ echo -e "Installing ArchLinuxARM ${archlinux_version}-${archlinux_arch}\n"
 echo -e "Warning: This will destroy any data on ${target_rootfs}\n"
 read -p "Press [Enter] to continue..."
 
-start_progress "Formating and mount target rootfs"
-ls /tmp/arfs &> /dev/null || mkdir /tmp/arfs >> ${LOGFILE} 2>&1
-mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
-mount -t ext4 ${target_rootfs} /tmp/arfs >> ${LOGFILE} 2>&1
-end_progress "done"
-
-start_progress "Downloading and extracting ArchLinuxARM rootfs"
-curl -s -L --output - $rootfs_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
-end_progress "done"
-
+format_target $1
+install_base
 setup_chroot
 copy_chros_files
 install_dev_tools
@@ -249,6 +316,7 @@ install_mate
 install_sound
 install_kernel
 install_misc_utils
+install_uboot_conf
 install_misc_conf
 
 echo -e "
