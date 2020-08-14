@@ -2,7 +2,7 @@ alarmontegrak1_version=latest
 board=jetson-tk1
 archlinux_arch="armv7"
 archlinux_version="latest"
-kernel_version=5.8.1-1-armv7h
+kernel_version=5.8.1-2-armv7h
 xorg_server_git_version=1.20.0.r704.g5c20e4b83-1-armv7h
 
 
