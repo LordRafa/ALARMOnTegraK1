@@ -292,6 +292,9 @@ function install_sound () {
 pacman -Syy --needed --noconfirm \
         alsa-lib alsa-utils alsa-tools alsa-oss alsa-firmware alsa-plugins \
         pulseaudio pulseaudio-alsa
+        amixer -c 0 set 'IEC958' 100% unmute
+        alsactl store
+        echo "load-module module-alsa-sink device=hw:0,3" >> /etc/pulse/default.pa
 EOF
 
   exec_in_chroot install-sound.sh
