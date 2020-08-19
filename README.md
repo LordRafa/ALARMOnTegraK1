@@ -61,7 +61,7 @@ mkdir -p /tmp/arfs
 mount /dev/sda1 /tmp/arfs/
 mkdir -p /tmp/arfs/boot/
 mkdir -p /tmp/arfs/home/
-mount /dev/mmcblk0p1 /tmp/arfs/boot # it is mandatory /boot is on SD or eMMC
+mount /dev/mmcblk0p1 /tmp/arfs/boot # it is mandatory for /boot to be on SD or eMMC
 mount /dev/sda2 /tmp/arfs/home
 
 sh archlinux.sh manual
