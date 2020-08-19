@@ -2,31 +2,37 @@
 
 set -e
 
+MY_CHROOT_DIR=/tmp/arfs
+
 target_rootfs=""
 
-emmc="/dev/mmcblk0p1"
-sd="/dev/mmcblk1p1"
-sda="/dev/sda1"
+EMMC_PATH="/dev/mmcblk0p1"
+SD_PATH="/dev/mmcblk1p1"
+SDA_PATH="/dev/sda1"
+MANUAL_PATH=${MY_CHROOT_DIR}
 
 case $1 in
 
  "emmc")
-    target_rootfs=${emmc}
+    target_rootfs=${EMMC_PATH}
     ;;
 
  "sd")
-    target_rootfs=${sd}
+    target_rootfs=${SD_PATH}
     ;;
 
  "sda")
-    target_rootfs=${sda}
+    target_rootfs=${SDA_PATH}
     ;;
-
+ "manual")
+    target_rootfs=${MANUAL_PATH}
+    ;;
   *)
-    echo -e "Usage: archlinux.sh [emmc|sd|sda]\n"\
-         "\temmc -> Installs Arch Linux ARM on the EMMC\n"\
-         "\tsd   -> Installs Arch Linux ARM on the SD Card\n"\
-         "\tsda  -> Installs Arch Linux ARM on the SATA Device\n"
+    echo -e "Usage: archlinux.sh [emmc|sd|sda|manual]:\n"\
+         "\temmc -> Installs Arch Linux ARM on the EMMC.\n"\
+         "\tsd   -> Installs Arch Linux ARM on the SD Card.\n"\
+         "\tsda  -> Installs Arch Linux ARM on the SATA Device.\n"\
+         "\tmanual  -> Installs Arch Linux ARM on a manually mounted device/s at ${MY_CHROOT_DIR} (note: No partitioning nor formating  will be done).\n"
   	exit 1
   	;;
 
@@ -37,13 +43,13 @@ function format_target () {
 
   start_progress "Formating and mount target rootfs"
 
-  ls /tmp/arfs &> /dev/null || mkdir /tmp/arfs >> ${LOGFILE} 2>&1
+  ls ${MY_CHROOT_DIR} &> /dev/null || mkdir ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
   mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
-  mount -t ext4 ${target_rootfs} /tmp/arfs >> ${LOGFILE} 2>&1
+  mount -t ext4 ${target_rootfs} ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
   if [[ $1 == "sda" ]]; then
-    mkfs.ext4 ${emmc} >> ${LOGFILE} 2>&1
-    mkdir /tmp/arfs/boot >> ${LOGFILE} 2>&1
-    mount -t ext4 ${emmc} /tmp/arfs/boot >> ${LOGFILE} 2>&1
+    mkfs.ext4 ${EMMC_PATH} >> ${LOGFILE} 2>&1
+    mkdir ${MY_CHROOT_DIR}/boot >> ${LOGFILE} 2>&1
+    mount -t ext4 ${EMMC_PATH} ${MY_CHROOT_DIR}/boot >> ${LOGFILE} 2>&1
   fi
 
   end_progress "done"
@@ -53,7 +59,7 @@ function format_target () {
 function install_base () {
 
   start_progress "Downloading and extracting ArchLinuxARM rootfs"
-  curl -s -L --output - $rootfs_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+  curl -s -L --output - $rootfs_file | tar xzvvp -C ${MY_CHROOT_DIR}/ >> ${LOGFILE} 2>&1
   end_progress "done"
 
 }
@@ -62,8 +68,6 @@ function install_base () {
 common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/common.sh"
 ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
 . ./common.sh
-
-MY_CHROOT_DIR=/tmp/arfs
 
 #
 # Note, this function removes the script after execution
@@ -257,11 +261,13 @@ function install_uboot_conf () {
 
   cat > ${MY_CHROOT_DIR}/uboot-conf.sh <<EOF
 pacman -Syy --needed --noconfirm  uboot-tools
-echo 0 > /sys/block/mmcblk0boot1/force_ro
-echo "/dev/mmcblk0boot1       0x3fe000        0x2000" >> /etc/fw_env.config
 
 if [[ $1 != "sd" ]]; then
-  fw_setenv bootargs "console=ttyS0,115200n8 console=tty1 root=${target_rootfs} rw rootwait"
+  echo 0 > /sys/block/mmcblk0boot1/force_ro
+  echo "/dev/mmcblk0boot1       0x3fe000        0x2000" >> /etc/fw_env.config
+
+  rootfs=$(findmnt -n -o source /)
+  fw_setenv bootargs "console=ttyS0,115200n8 console=tty1 root=${rootfs} rw rootwait"
 fi
 EOF
 
@@ -301,7 +307,7 @@ EOF
 
   exec_in_chroot install-sound.sh
 
-  curl -s -L --output - $alsacfg_file | tar xJvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+  curl -s -L --output - $alsacfg_file | tar xJvvp -C ${MY_CHROOT_DIR}/ >> ${LOGFILE} 2>&1
 
   end_progress "done"
 
@@ -313,7 +319,9 @@ echo -e "Installing ArchLinuxARM ${archlinux_version}-${archlinux_arch}\n"
 echo -e "Warning: This will destroy any data on ${target_rootfs}\n"
 read -p "Press [Enter] to continue..."
 
-format_target $1
+if [[ $1 != "manual" ]]; then
+  format_target $1
+fi
 install_base
 setup_chroot
 copy_chros_files
