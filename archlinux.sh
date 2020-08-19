@@ -65,6 +65,8 @@ function install_base () {
 
   start_progress "Downloading and extracting ArchLinuxARM rootfs"
   curl -s -L --output - $rootfs_file | tar xzvvp -C ${MY_CHROOT_DIR}/ >> ${LOGFILE} 2>&1
+  
+  genfstab -U ${MY_CHROOT_DIR}/ > ${MY_CHROOT_DIR}/etc/fstab
   end_progress "done"
 
 }
