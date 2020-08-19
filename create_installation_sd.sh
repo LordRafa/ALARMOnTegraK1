@@ -24,16 +24,16 @@ mkfs.ext4 -L ALARM_SD ${1}1 >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Mounting new SD partition."
-ls /tmp/arfs &> /dev/null || mkdir /tmp/arfs >> ${LOGFILE} 2>&1
-mount ${1}1 /tmp/arfs >> ${LOGFILE} 2>&1
+ls ${WORK_PATH} &> /dev/null || mkdir ${WORK_PATH} >> ${LOGFILE} 2>&1
+mount ${1}1 ${WORK_PATH} >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Downloading and extracting ArchLinuxARM rootfs."
-curl -s -L --output - $rootfs_file | tar xzvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+curl -s -L --output - $rootfs_file | tar xzvvp -C ${WORK_PATH}/ >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Downloading and extracting jetson tk1 kernel."
-curl -s -L --output - $kernel_file | tar xJvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
+curl -s -L --output - $kernel_file | tar xJvvp -C ${WORK_PATH}/ >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Syncing and unmounting new SD partition."

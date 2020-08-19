@@ -1,3 +1,4 @@
+WORK_PATH=/tmp/arfs
 alarmontegrak1_version=latest
 board=jetson-tk1
 archlinux_arch="armv7"

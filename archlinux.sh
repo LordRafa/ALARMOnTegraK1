@@ -2,7 +2,7 @@
 
 set -e
 
-MY_CHROOT_DIR=/tmp/arfs
+MY_CHROOT_DIR=${WORK_PATH}
 
 target_rootfs=""
 
