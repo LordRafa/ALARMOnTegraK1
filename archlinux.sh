@@ -37,7 +37,7 @@ case $1 in
          "\temmc -> Installs Arch Linux ARM on the EMMC.\n"\
          "\tsd   -> Installs Arch Linux ARM on the SD Card.\n"\
          "\tsda  -> Installs Arch Linux ARM on the SATA Device.\n"\
-         "\tmanual  -> Installs Arch Linux ARM on a manually mounted device/s at ${MY_CHROOT_DIR} (note: No partitioning nor formating  will be done).\n"
+         "\tmanual  -> Installs Arch Linux ARM on a manually mounted device/s at ${MY_CHROOT_DIR} (note: No partitioning nor formatting  will be done).\n"
   	exit 1
   	;;
 
@@ -46,7 +46,7 @@ esac
 
 function format_target () {
 
-  start_progress "Formating and mount target rootfs"
+  start_progress "Formatting and mount target rootfs"
 
   ls ${MY_CHROOT_DIR} &> /dev/null || mkdir ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
   mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
