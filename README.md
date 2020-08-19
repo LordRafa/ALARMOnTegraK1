@@ -46,6 +46,23 @@ curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/arch
 sh archlinux.sh INSTALLATION_TARGET
 # INSTALLATION_TARGET must be replaced by "emmc", "sd", "sda" or manual, which correspond respectively to the internal eMMC, the SD Card, any SATA connected or a manually mounted filesystem.
 ```
+Once the script finish the Jetson TK1 will reboot remove the SD and it will boot on the new installation.
+
 The "manual" option can be useful when you want to create complex file systems with specific folders mounted in specific partitions (e.g. separate / and /home in different partitions). It will require to do the partitioning and the formatting manually and then mount the partitions under /tmp/arfs/.
 
-Once the script finish the Jetson TK1 will reboot remove the SD and it will boot on the new installation.
+e.g:
+```bash
+# From Jetson booted using the SD card, after create sda1 and sda2 partitions with fdisk or similar
+mkfs.ext4 -L boot /dev/mmcblk0p1
+mkfs.ext4 -L root /dev/sda1
+mkfs.ext4 -L home /dev/sda2
+
+mkdir -p /tmp/arfs
+mount /dev/sda1 /tmp/arfs/
+mkdir -p /tmp/arfs/boot/
+mkdir -p /tmp/arfs/home/
+mount /dev/mmcblk0p1 /tmp/arfs/boot # it is mandatory /boot is on SD or eMMC
+mount /dev/sda2 /tmp/arfs/home
+
+sh archlinux.sh manual
+```
