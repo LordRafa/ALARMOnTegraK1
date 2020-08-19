@@ -27,6 +27,7 @@ xorg_server_git_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/${late
 xorg_server_xvfb_git_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/${latest}/download/${alarmontegrak1_version}/xorg-server-xvfb-git-${xorg_server_git_version}.pkg.tar.xz"
 kernel_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/${latest}/download/${alarmontegrak1_version}/linux-${board}-${kernel_version}.pkg.tar.xz"
 headers_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/${latest}/download/${alarmontegrak1_version}/linux-${board}-headers-${kernel_version}.pkg.tar.xz"
+alsacfg_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/${latest}/download/${alarmontegrak1_version}/alsacfg.tar.xz"
 
 CWD=`pwd`
 LOGFILE="${CWD}/archlinux-install.log"

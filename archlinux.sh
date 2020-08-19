@@ -297,10 +297,11 @@ pacman -Syy --needed --noconfirm \
         pulseaudio pulseaudio-alsa
         amixer -c 0 set 'IEC958' 100% unmute
         alsactl store
-        echo "load-module module-alsa-sink device=hw:0,3" >> /etc/pulse/default.pa
 EOF
 
   exec_in_chroot install-sound.sh
+
+  curl -s -L --output - $alsacfg_file | tar xJvvp -C /tmp/arfs/ >> ${LOGFILE} 2>&1
 
   end_progress "done"
 
