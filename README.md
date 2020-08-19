@@ -25,6 +25,10 @@ I implemented the following changes:
 * Formarts and installs ALArm directly into /dev/mmcblk0p1.
 * Installs the required boot.scr in /boot.
 
+# Obligatory disclaimer
+
+This code is provided without any warranty, use under your own resposability.
+
 # Usage
 
 Follow this guide to install the latest uBoot on the Jetson TK1
@@ -40,8 +44,8 @@ Using the SD card boot the Jetson TK1, login as root (root:root) and run:
 ```bash
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/archlinux.sh -o archlinux.sh
 sh archlinux.sh INSTALLATION_TARGET
-# INSTALLATION_TARGET must be replaced by "emmc", "sd" or "sda", which correspond respectively to the internal eMMC, the SD Card or any SATA connected.
+# INSTALLATION_TARGET must be replaced by "emmc", "sd", "sda" or manual, which correspond respectively to the internal eMMC, the SD Card, any SATA connected or a manually mounted filesystem.
 ```
-
+The "manual" option can be useful when you want to create complex file systems with specific folders mounted in specific partitions (e.g. separate / and /home in different partitions). It will require to do the partitioning and the formatting manually and then mount the partitions under /tmp/arfs/.
 
 Once the script finish the Jetson TK1 will reboot remove the SD and it will boot on the new installation.
