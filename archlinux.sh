@@ -261,15 +261,14 @@ function install_uboot_conf () {
 
   start_progress "Performing configure U-BOOT."
 
-  cat > ${MY_CHROOT_DIR}/uboot-conf.sh <<EOF
-pacman -Syy --needed --noconfirm  uboot-tools
+  rootfs=$(findmnt -n -o source ${MY_CHROOT_DIR})
 
+cat > ${MY_CHROOT_DIR}/uboot-conf.sh <<EOF
+pacman -Syy --needed --noconfirm  uboot-tools
+echo "/dev/mmcblk0boot1       0x3fe000        0x2000" > /etc/fw_env.config
 if [[ $1 != "sd" ]]; then
   echo 0 > /sys/block/mmcblk0boot1/force_ro
-  echo "/dev/mmcblk0boot1       0x3fe000        0x2000" >> /etc/fw_env.config
-
-  rootfs=$(findmnt -n -o source /)
-  fw_setenv bootargs "console=ttyS0,115200n8 console=tty1 root=${rootfs} rw rootwait"
+  fw_setenv bootargs console=ttyS0,115200n8 console=tty1 root=${rootfs} rw rootwait
 fi
 EOF
 
