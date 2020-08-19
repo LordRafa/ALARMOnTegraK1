@@ -2,6 +2,11 @@
 
 set -e
 
+# Downloads common.sh if script was run out of the git tree eg: Following readme instructions.
+common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/common.sh"
+ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
+. ./common.sh
+
 MY_CHROOT_DIR=${WORK_PATH}
 
 target_rootfs=""
@@ -63,11 +68,6 @@ function install_base () {
   end_progress "done"
 
 }
-
-# Downloads common.sh if script was run out of the git tree eg: Following readme instructions.
-common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/common.sh"
-ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
-. ./common.sh
 
 #
 # Note, this function removes the script after execution
