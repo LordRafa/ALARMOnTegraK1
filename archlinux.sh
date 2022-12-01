@@ -151,27 +151,17 @@ function install_xbase () {
   start_progress "Installing X-server basics"
 
   cat > ${MY_CHROOT_DIR}/install-xbase.sh <<EOF
-wget ${xorg_server_common_git_file}
-wget ${xorg_server_xephyr_git_file} 
-wget ${xorg_server_xwayland_git_file} 
-wget ${xorg_server_devel_git_file} 
-wget ${xorg_server_xnest_git_file} 
-wget ${xorg_server_git_file} 
-wget ${xorg_server_xvfb_git_file}
-
-yes n | pacman -U --noconfirm xorg-server*git*
-
 pacman -Syy --needed --noconfirm \
         iw networkmanager network-manager-applet \
         lightdm lightdm-gtk-greeter \
         chromium \
         xorg-apps \
+        xorg_server \ 
         xorg-twm xorg-xclock xterm xorg-xinit \
         xf86-input-evdev xf86-video-fbdev
 
 systemctl enable NetworkManager
 systemctl enable lightdm
-rm xorg-server*git*
 EOF
 
   exec_in_chroot install-xbase.sh
