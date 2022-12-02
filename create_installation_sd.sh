@@ -7,8 +7,12 @@ common_file="https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download
 ls common.sh &> /dev/null || curl -s -L $common_file -o common.sh
 . ./common.sh
 
-if [[ "$(lsblk -ndo tran ${1})" != "usb" ]]; then
-  echo "Error: The selected device is not a USB/SD memory. Aborting to avoid damaging the system."
+[ $# -eq 0 ] && echo -e "Usage: create_installation_sd.sh /dev/YOUR_SD_DEVICE [-f]\n\tNote: -f forces format, this can be potentially dangerous and not recommended" && exit
+lsblk -ndo tran ${1} &> /dev/null || { echo "First parameter must be a block device"; exit; }
+
+if [[ "$(lsblk -ndo tran ${1})" != "usb" ]] && [[ "${2}" != "-f" ]]; then
+  echo "Error: The provided device is not a USB/SD memory. Aborting to prevent damaging your system."
+  echo "If ypu are sure on what you can force the installation by adding -f as seccond parameter (potentially dangerous)"
   exit
 fi
 
@@ -19,13 +23,15 @@ read -p "Press [Enter] to continue or CTRL+C to abort..."
 echo "" > ${LOGFILE}
 
 start_progress "Formating SD memory."
-echo 'type=83' | sfdisk $1 >> ${LOGFILE} 2>&1
-mkfs.ext4 -L ALARM_SD ${1}1 >> ${LOGFILE} 2>&1
+sfdisk --delete /dev/mmcblk0
+echo ';' | sfdisk ${1} >> ${LOGFILE} 2>&1
+partition1=$(lsblk ${1} -n -p -l -o name,type | grep part | cut -f 1 -d " ")
+mkfs.ext4 -L ALARM_SD ${partition1} >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Mounting new SD partition."
 ls ${WORK_PATH} &> /dev/null || mkdir ${WORK_PATH} >> ${LOGFILE} 2>&1
-mount ${1}1 ${WORK_PATH} >> ${LOGFILE} 2>&1
+mount ${partition1} ${WORK_PATH} >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Downloading and extracting ArchLinuxARM rootfs."
@@ -39,7 +45,7 @@ end_progress "done"
 start_progress "Syncing and unmounting new SD partition."
 echo "Syncing disks..." >> ${LOGFILE}
 sync
-umount ${1}1 >> ${LOGFILE} 2>&1
+umount ${partition1} >> ${LOGFILE} 2>&1
 end_progress "done"
 
 echo "Everything is finished, now you can use $1 to boot Jetson TK1 and continue with the installation."
