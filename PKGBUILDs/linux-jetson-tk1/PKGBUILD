@@ -14,19 +14,15 @@ url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'vboot-utils' 'dtc')
 options=('!strip')
-source=("http://www.kernel.org/pub/linux/kernel/v5.x/${_srcname}.tar.xz"
+source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
         'linux.preset'
         '99-linux.hook'
 	'mkinitcpio_tegra124.conf'
         'jetson-tk1_defconfig'
         'boot.scr'
 	'linux-jetson-tk1.install'
-        'jetson-enable-wifi.patch'
+        'jetson-enable-wifi.patch')
 md5sums=('SKIP'
-         'SKIP'
-         'SKIP'
-         'SKIP'
-         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -50,9 +46,9 @@ prepare() {
 
 build() {
   cd "${srcdir}/${_srcname}"
-  make defconfig jetson-tk1_defconfig
+  make ARCH=arm defconfig jetson-tk1_defconfig
   # get kernel version
-  make prepare
+  make ARCH=arm prepare
 
   # load configuration
   # Configure the kernel. Replace the line below with one of your choice.
@@ -74,7 +70,7 @@ build() {
   #yes "" | make config
 
   # build!
-  make -j5 ${MAKEFLAGS} zImage modules dtbs
+  make ARCH=arm -j5 ${MAKEFLAGS} zImage modules dtbs
 }
 
 _package() {
@@ -92,13 +88,13 @@ _package() {
   KARCH=arm
 
   # get kernel version
-  _kernver="$(make kernelrelease)"
+  _kernver="$(make ARCH=arm kernelrelease)"
   _basekernel=${_kernver%%-*}
   _basekernel=${_basekernel%.*}
 
   mkdir -p "${pkgdir}"/{lib/modules,lib/firmware,etc/mkinitcpio.d}
-  make INSTALL_MOD_PATH="${pkgdir}" modules_install
-  make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
+  make ARCH=arm INSTALL_MOD_PATH="${pkgdir}" modules_install
+  make ARCH=arm INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
   cp arch/$KARCH/boot/zImage "${pkgdir}/boot/zImage"
   cp "${srcdir}/boot.scr" "${pkgdir}/boot/boot.scr"
   cp "${srcdir}/mkinitcpio_tegra124.conf" "${pkgdir}/etc/mkinitcpio.d/mkinitcpio_tegra124.conf"
@@ -164,11 +160,7 @@ _package-headers() {
   # copy arch includes for external modules
   mkdir -p ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH
   cp -a arch/$KARCH/include ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/
-  for i in dove exynos omap2; do
-    mkdir -p ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/mach-${i}
-    cp -a arch/$KARCH/mach-${i}/include ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/mach-${i}/
-  done
-  for i in omap orion samsung versatile; do
+  for i in orion; do
     mkdir -p ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/plat-${i}
     cp -a arch/$KARCH/plat-${i}/include ${pkgdir}/usr/lib/modules/${_kernver}/build/arch/$KARCH/plat-${i}/
   done
