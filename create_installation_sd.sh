@@ -12,7 +12,7 @@ lsblk -ndo tran ${1} &> /dev/null || { echo "First parameter must be a block dev
 
 if [[ "$(lsblk -ndo tran ${1})" != "usb" ]] && [[ "${2}" != "-f" ]]; then
   echo "Error: The provided device is not a USB/SD memory. Aborting to prevent damaging your system."
-  echo "If ypu are sure on what you can force the installation by adding -f as seccond parameter (potentially dangerous)"
+  echo "If you know what are you doing, you can force the installation by adding -f as seccond parameter (risking destroying all you data)"
   exit
 fi
 
