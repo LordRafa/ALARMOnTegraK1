@@ -1,5 +1,5 @@
 WORK_PATH=/tmp/arfs
-alarmontegrak1_version=latest
+alarmontegrak1_version=v1.0.4-M1
 board=jetson-tk1
 archlinux_arch="armv7"
 archlinux_version="latest"

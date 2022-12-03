@@ -23,7 +23,6 @@ echo -e "Warning: This will destroy any data in ${1}\n"
 read -p "Press [Enter] to continue or CTRL+C to abort..."
 
 start_progress "Formating SD memory."
-sfdisk --delete ${1} >> ${LOGFILE} 2>&1
 echo ';' | sfdisk ${1} >> ${LOGFILE} 2>&1
 partition1=$(lsblk ${1} -n -p -l -o name,type | grep part | cut -f 1 -d " ")
 mkfs.ext4 -L ALARM_SD ${partition1} >> ${LOGFILE} 2>&1
