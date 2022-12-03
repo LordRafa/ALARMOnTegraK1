@@ -21,7 +21,7 @@ I implemented the following changes:
 * Added a patch to enable WF_EN gpio by default. This enables mini-pcie wifi cards.
 * Included BT and Wifi modules.
 * Replaced XCFE4 by Mate.
-* Included xorg-server-git package required to start X.
+* ~~Included xorg-server-git package required to start X.~~ (No needed any longer)
 * Formarts and installs ALArm directly into /dev/mmcblk0p1.
 * Installs the required boot.scr in /boot.
 
@@ -37,13 +37,13 @@ https://wiki.debian.org/InstallingDebianOn/NVIDIA/Jetson-TK1
 From a PC use the create_installation_sd.sh script to configure a SD card as an installation medium.
 ```bash
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/create_installation_sd.sh -o create_installation_sd.sh
-sh create_installation_sd.sh /dev/sdX
+bash create_installation_sd.sh /dev/sdX
 ```
 
 Using the SD card boot the Jetson TK1, login as root (root:root) and run:
 ```bash
 curl -L https://github.com/LordRafa/ALARMOnTegraK1/releases/latest/download/archlinux.sh -o archlinux.sh
-sh archlinux.sh INSTALLATION_TARGET
+bash archlinux.sh INSTALLATION_TARGET
 # INSTALLATION_TARGET must be replaced by "emmc", "sd", "sda" or manual, which correspond respectively to the internal eMMC, the SD Card, any SATA connected or a manually mounted filesystem.
 ```
 Once the script finish the Jetson TK1 will reboot remove the SD and it will boot on the new installation.
@@ -64,5 +64,5 @@ mkdir -p /tmp/arfs/home/
 mount /dev/mmcblk0p1 /tmp/arfs/boot # it is mandatory for /boot to be on SD or eMMC
 mount /dev/sda2 /tmp/arfs/home
 
-sh archlinux.sh manual
+bash archlinux.sh manual
 ```
