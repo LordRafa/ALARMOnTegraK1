@@ -19,10 +19,12 @@ source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
         '99-linux.hook'
 	'mkinitcpio_tegra124.conf'
         'jetson-tk1_defconfig'
-        'boot.scr'
+        'boot.script'
 	'linux-jetson-tk1.install'
-        'jetson-enable-wifi.patch')
+        'jetson-enable-wifi.patch'
+	'jetson-disable-usb2.patch')
 md5sums=('SKIP'
+         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -35,6 +37,7 @@ prepare() {
   cd "${srcdir}/${_srcname}"
 
   patch -p1 < ../jetson-enable-wifi.patch
+  patch -p1 < ../jetson-disable-usb2.patch
 
   cp ../jetson-tk1_defconfig arch/arm/configs/jetson-tk1_defconfig
   # add pkgrel to extraversion
@@ -96,6 +99,7 @@ _package() {
   make ARCH=arm INSTALL_MOD_PATH="${pkgdir}" modules_install
   make ARCH=arm INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
   cp arch/$KARCH/boot/zImage "${pkgdir}/boot/zImage"
+  mkimage -A arm -T script -C none -n "Jetson TK1 boot script" -d /boot.script /boot.scr
   cp "${srcdir}/boot.scr" "${pkgdir}/boot/boot.scr"
   cp "${srcdir}/mkinitcpio_tegra124.conf" "${pkgdir}/etc/mkinitcpio.d/mkinitcpio_tegra124.conf"
 

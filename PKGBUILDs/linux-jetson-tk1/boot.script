@@ -1,0 +1,17 @@
+# If SD card force bootargs to allow SD rescue
+
+test ${console} || setenv console "ttyS0,115200n8"
+
+if test ${devnum} = 1; then
+  if test -n ${distro_bootpart}; then setenv bootpart ${distro_bootpart}; else setenv bootpart 1; fi
+  part uuid ${devtype} ${devnum}:${bootpart} uuid
+  setenv bootargs console=${console} earlycon=uart8250,mmio32,0x70006300 earlyprintk root=PARTUUID=${uuid} rw rootwait;
+fi
+
+if load ${devtype} ${devnum}:${bootpart} ${kernel_addr_r} ${prefix}zImage; then
+  if load ${devtype} ${devnum}:${bootpart} ${fdt_addr_r} ${prefix}dtbs/${soc}-${board_name}.dtb; then
+    if load ${devtype} ${devnum}:${bootpart} ${ramdisk_addr_r} ${prefix}initramfs-linux.img; then
+      bootz ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r};
+    fi;
+  fi;
+fi
