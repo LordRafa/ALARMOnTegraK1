@@ -99,8 +99,7 @@ _package() {
   make ARCH=arm INSTALL_MOD_PATH="${pkgdir}" modules_install
   make ARCH=arm INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs" dtbs_install
   cp arch/$KARCH/boot/zImage "${pkgdir}/boot/zImage"
-  mkimage -A arm -T script -C none -n "Jetson TK1 boot script" -d /boot.script /boot.scr
-  cp "${srcdir}/boot.scr" "${pkgdir}/boot/boot.scr"
+  mkimage -A arm -T script -C none -n "Jetson TK1 boot script" -d "${srcdir}/boot.script" "${pkgdir}/boot/boot.scr"
   cp "${srcdir}/mkinitcpio_tegra124.conf" "${pkgdir}/etc/mkinitcpio.d/mkinitcpio_tegra124.conf"
 
   # set correct depmod command for install
