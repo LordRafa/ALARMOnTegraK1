@@ -4,10 +4,10 @@
 buildarch=4
 
 pkgbase=linux-jetson-tk1
-_srcname=linux-6.0.10
+_srcname=linux-6.0.11
 _kernelname=${pkgbase#linux}
 _desc="ARMv7 Jetson TK1"
-pkgver=6.0.10
+pkgver=6.0.11
 pkgrel=1
 arch=('armv7h')
 url="http://www.kernel.org/"

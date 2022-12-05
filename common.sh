@@ -3,7 +3,7 @@ alarmontegrak1_version=v1.0.4-M1
 board=jetson-tk1
 archlinux_arch="armv7"
 archlinux_version="latest"
-kernel_version=6.0.10-1-armv7h
+kernel_version=6.0.11-1-armv7h
 
 
 if [ "$EUID" -ne 0 ]; then
