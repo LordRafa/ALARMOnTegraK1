@@ -25,7 +25,7 @@ read -p "Press [Enter] to continue or CTRL+C to abort..."
 start_progress "Formating SD memory."
 echo ';' | sfdisk ${1} >> ${LOGFILE} 2>&1
 partition1=$(lsblk ${1} -n -p -l -o name,type | grep part | cut -f 1 -d " ")
-mkfs.ext4 -L ALARM_SD ${partition1} >> ${LOGFILE} 2>&1
+mkfs.ext3 -L ALARM_SD ${partition1} >> ${LOGFILE} 2>&1
 end_progress "done"
 
 start_progress "Mounting new SD partition."

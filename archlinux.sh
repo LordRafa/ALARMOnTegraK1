@@ -49,12 +49,12 @@ function format_target () {
   start_progress "Formatting and mount target rootfs"
 
   ls ${MY_CHROOT_DIR} &> /dev/null || mkdir ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
-  mkfs.ext4 ${target_rootfs} >> ${LOGFILE} 2>&1
-  mount -t ext4 ${target_rootfs} ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
+  mkfs.ext3 ${target_rootfs} >> ${LOGFILE} 2>&1
+  mount -t ext3 ${target_rootfs} ${MY_CHROOT_DIR} >> ${LOGFILE} 2>&1
   if [[ $1 == "sda" ]]; then
-    mkfs.ext4 ${EMMC_PATH} >> ${LOGFILE} 2>&1
+    mkfs.ext3 ${EMMC_PATH} >> ${LOGFILE} 2>&1
     mkdir ${MY_CHROOT_DIR}/boot >> ${LOGFILE} 2>&1
-    mount -t ext4 ${EMMC_PATH} ${MY_CHROOT_DIR}/boot >> ${LOGFILE} 2>&1
+    mount -t ext3 ${EMMC_PATH} ${MY_CHROOT_DIR}/boot >> ${LOGFILE} 2>&1
   fi
 
   end_progress "done"
