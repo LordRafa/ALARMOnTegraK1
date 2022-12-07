@@ -8,7 +8,7 @@ _srcname=linux-6.0.11
 _kernelname=${pkgbase#linux}
 _desc="ARMv7 Jetson TK1"
 pkgver=6.0.11
-pkgrel=1
+pkgrel=2
 arch=('armv7h')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -21,10 +21,8 @@ source=("http://www.kernel.org/pub/linux/kernel/v6.x/${_srcname}.tar.xz"
         'jetson-tk1_defconfig'
         'boot.script'
 	'linux-jetson-tk1.install'
-        'jetson-enable-wifi.patch'
-	'jetson-disable-usb2.patch')
+	'jetson-enable-wifi.patch')
 md5sums=('SKIP'
-         'SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
@@ -37,7 +35,6 @@ prepare() {
   cd "${srcdir}/${_srcname}"
 
   patch -p1 < ../jetson-enable-wifi.patch
-  patch -p1 < ../jetson-disable-usb2.patch
 
   cp ../jetson-tk1_defconfig arch/arm/configs/jetson-tk1_defconfig
   # add pkgrel to extraversion
